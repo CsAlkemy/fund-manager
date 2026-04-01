@@ -8,12 +8,11 @@ import toast from 'react-hot-toast';
 
 export default function CreateGroupPage() {
   const router = useRouter();
-  const form = useForm<CreateGroupInput>({
-    resolver: zodResolver(createGroupSchema),
-    defaultValues: { monthlyAmount: 1000, fineAmount: 100, fineDeadlineDay: 15 },
+  const form = useForm({
+    defaultValues: { name: '', description: '', monthlyAmount: 1000, fineAmount: 100, fineDeadlineDay: 15 },
   });
 
-  const onSubmit = async (data: CreateGroupInput) => {
+  const onSubmit = async (data: any) => {
     try {
       const res = await api.post('/groups', data);
       toast.success('Group created!');

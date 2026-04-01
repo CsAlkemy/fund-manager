@@ -9,6 +9,77 @@ import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { PiggyBank, AlertTriangle, Clock, Wallet, Users, DollarSign, Hourglass, LayoutGrid } from 'lucide-react';
+import {
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+  PieChart, Pie, Cell,
+} from 'recharts';
+
+function CollectionChart({ contributions, range }: { contributions: any[]; range: number }) {
+  const now = new Date();
+  const half = Math.floor(range / 2);
+  const data = [];
+  for (let i = -half; i <= range - half - 1; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const m = d.getMonth() + 1;
+    const y = d.getFullYear();
+    const total = contributions
+      .filter((c: any) => c.month === m && c.year === y && c.status === 'VERIFIED')
+      .reduce((a: number, c: any) => a + c.amount, 0);
+    const label = d.toLocaleString('en', { month: 'short', year: range > 6 ? '2-digit' : undefined });
+    data.push({ name: label, contributions: total, isCurrent: i === 0 });
+  }
+
+  return (
+    <ResponsiveContainer width="100%" height="100%">
+      <AreaChart data={data} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+        <defs>
+          <linearGradient id="colorContrib" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="5%" stopColor="#4a7c59" stopOpacity={0.15} />
+            <stop offset="95%" stopColor="#4a7c59" stopOpacity={0} />
+          </linearGradient>
+        </defs>
+        <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+        <XAxis dataKey="name" tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} />
+        <YAxis tick={{ fontSize: 11, fill: '#9ca3af' }} axisLine={false} tickLine={false} tickFormatter={(v) => `৳${v >= 1000 ? `${(v / 1000).toFixed(0)}k` : v}`} />
+        <Tooltip formatter={(value: any) => [`৳${Number(value).toLocaleString()}`, 'Collected']} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
+        <Area type="monotone" dataKey="contributions" stroke="#4a7c59" strokeWidth={2} fill="url(#colorContrib)" />
+      </AreaChart>
+    </ResponsiveContainer>
+  );
+}
+
+function StatusDonut({ data }: { data: { name: string; value: number; color: string }[] }) {
+  const total = data.reduce((a, d) => a + d.value, 0);
+  if (total === 0) return <p className="text-sm text-gray-400 text-center py-8">No data yet</p>;
+
+  return (
+    <div className="flex flex-col items-center">
+      <ResponsiveContainer width="100%" height={180}>
+        <PieChart>
+          <Pie data={data} cx="50%" cy="50%" innerRadius={50} outerRadius={75} paddingAngle={3} dataKey="value" strokeWidth={0}>
+            {data.map((d, i) => <Cell key={d.name} fill={d.color} />)}
+          </Pie>
+          <Tooltip formatter={(value: any, name: any) => [value, name]} contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 12 }} />
+        </PieChart>
+      </ResponsiveContainer>
+      <div className="flex items-center justify-center gap-4 mt-2">
+        {data.map((d) => (
+          <div key={d.name} className="flex items-center gap-1.5">
+            <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: d.color }} />
+            <span className="text-xs text-gray-500">{d.name} <strong className="text-gray-700">{d.value}</strong></span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+const RANGE_OPTIONS = [
+  { label: '3M', value: 3 },
+  { label: '6M', value: 6 },
+  { label: '1Y', value: 12 },
+  { label: '2Y', value: 24 },
+];
 
 const PAGE_SIZE = 10;
 
@@ -215,6 +286,7 @@ function ManagerDashboard() {
   const [group, setGroup] = useState<any>(null);
   const [summary, setSummary] = useState<any>(null);
   const [pending, setPending] = useState<any[]>([]);
+  const [contributions, setContributions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   const groupId = user?.memberships?.find((m) => m.role === 'MANAGER')?.group.id;
@@ -225,23 +297,26 @@ function ManagerDashboard() {
       api.get(`/groups/${groupId}`),
       api.get(`/groups/${groupId}/summary`),
       api.get(`/groups/${groupId}/contributions/pending`),
-    ]).then(([g, s, p]) => {
+      api.get(`/groups/${groupId}/contributions`),
+    ]).then(([g, s, p, c]) => {
       setGroup(g.data);
       setSummary(s.data);
       setPending(p.data);
+      setContributions(c.data);
     }).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groupId]);
 
-  const handleVerify = async (id: string) => {
-    try {
-      await api.patch(`/groups/${groupId}/contributions/${id}/verify`, { status: 'VERIFIED' });
-      toast.success('Approved!');
-      setPending((prev) => prev.filter((p) => p.id !== id));
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
-  };
+  const [chartRange, setChartRange] = useState(12);
 
   if (loading) return <p className="text-gray-400">Loading...</p>;
   if (!group) return <p className="text-gray-500">No group assigned. Contact your admin.</p>;
+
+  const statusData = [
+    { name: 'Verified', value: contributions.filter((c: any) => c.status === 'VERIFIED').length, color: '#22c55e' },
+    { name: 'Pending', value: contributions.filter((c: any) => c.status === 'PENDING').length, color: '#f59e0b' },
+    { name: 'Rejected', value: contributions.filter((c: any) => c.status === 'REJECTED').length, color: '#ef4444' },
+  ];
 
   return (
     <>
@@ -257,43 +332,54 @@ function ManagerDashboard() {
         <StatCard title="Pending" value={String(pending.length)} change={pending.length > 0 ? 'Needs attention' : 'All clear'} changeType={pending.length > 0 ? 'negative' : 'positive'} color="yellow" icon={Hourglass} />
       </div>
 
-      {pending.length > 0 && (
-        <div className="rounded-xl bg-white p-6 border border-orange-200 mb-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Pending Verifications</h2>
-          <div className="space-y-3">
-            {pending.map((c) => (
-              <div key={c.id} className="flex items-center justify-between border-b border-gray-50 pb-3">
-                <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-medium">{c.user.name.charAt(0)}</div>
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{c.user.name}</p>
-                    <p className="text-xs text-gray-500">{c.paymentMethod} · ৳{c.amount} · {new Date(0, c.month - 1).toLocaleString('en', { month: 'short' })} {c.year}</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2">
-                  {c.screenshotUrl && <a href={`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Proof</a>}
-                  <button onClick={() => handleVerify(c.id)} className="rounded bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600">Approve</button>
-                </div>
-              </div>
-            ))}
+      {/* Charts */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        {/* Collection Trend */}
+        <div className="lg:col-span-2 rounded-xl bg-white p-5 border border-gray-100">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-sm font-semibold text-gray-900">Collection Trend</h3>
+            <div className="flex items-center bg-gray-100 rounded-lg p-0.5">
+              {RANGE_OPTIONS.map((opt) => (
+                <button
+                  key={opt.value}
+                  onClick={() => setChartRange(opt.value)}
+                  className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                    chartRange === opt.value ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'
+                  }`}
+                >
+                  {opt.label}
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="h-64">
+            <CollectionChart contributions={contributions} range={chartRange} />
           </div>
         </div>
-      )}
 
-      <div className="rounded-xl bg-white p-6 border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Members</h2>
-        <table className="w-full text-sm">
-          <thead><tr className="border-b border-gray-100"><th className="pb-3 text-left font-medium text-gray-500">Name</th><th className="pb-3 text-left font-medium text-gray-500">Email</th><th className="pb-3 text-left font-medium text-gray-500">Role</th></tr></thead>
-          <tbody>
-            {group.memberships?.map((m: any) => (
-              <tr key={m.user.id} className="border-b border-gray-50">
-                <td className="py-3 font-medium text-gray-900">{m.user.name}</td>
-                <td className="py-3 text-gray-500">{m.user.email}</td>
-                <td className="py-3"><span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${m.role === 'MANAGER' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>{m.role}</span></td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        {/* Payment Status Donut */}
+        <div className="rounded-xl bg-white p-5 border border-gray-100">
+          <h3 className="text-sm font-semibold text-gray-900 mb-2">Payment Status</h3>
+          <StatusDonut data={statusData} />
+        </div>
+      </div>
+
+      {/* Quick links */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        {pending.length > 0 && (
+          <a href="/verify" className="rounded-xl bg-orange-50 border border-orange-100 p-4 hover:border-orange-200 transition-colors">
+            <p className="text-sm font-semibold text-orange-700">{pending.length} pending verifications</p>
+            <p className="text-xs text-orange-500 mt-0.5">Review payments →</p>
+          </a>
+        )}
+        <a href="/members" className="rounded-xl bg-purple-50 border border-purple-100 p-4 hover:border-purple-200 transition-colors">
+          <p className="text-sm font-semibold text-purple-700">{group.memberships?.filter((m: any) => m.role === 'MEMBER').length || 0} members</p>
+          <p className="text-xs text-purple-500 mt-0.5">Manage members →</p>
+        </a>
+        <a href="/contributions" className="rounded-xl bg-blue-50 border border-blue-100 p-4 hover:border-blue-200 transition-colors">
+          <p className="text-sm font-semibold text-blue-700">{contributions.length} total contributions</p>
+          <p className="text-xs text-blue-500 mt-0.5">View all →</p>
+        </a>
       </div>
     </>
   );

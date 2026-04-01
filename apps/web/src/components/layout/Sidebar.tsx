@@ -135,8 +135,9 @@ export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, col
             <>
               <SectionLabel label="Manager" collapsed={collapsed} />
               <NavItem href="/dashboard" icon="grid" label="Dashboard" isActive={router.pathname === '/dashboard'} collapsed={collapsed} onClick={closeMobile} />
-              <NavItem href="/groups" icon="globe" label="My Group" isActive={router.pathname.startsWith('/groups')} collapsed={collapsed} onClick={closeMobile} />
-              <NavItem href="/contributions" icon="check" label="Verify Payments" isActive={router.pathname.startsWith('/contributions')} collapsed={collapsed} onClick={closeMobile} />
+              <NavItem href="/verify" icon="check" label="Verify Payments" isActive={router.pathname.startsWith('/verify')} collapsed={collapsed} onClick={closeMobile} />
+              <NavItem href="/members" icon="users" label="Members" isActive={router.pathname.startsWith('/members')} collapsed={collapsed} onClick={closeMobile} />
+              <NavItem href="/contributions" icon="wallet" label="Contributions" isActive={router.pathname.startsWith('/contributions')} collapsed={collapsed} onClick={closeMobile} />
               <NavItem href="/fines" icon="alert-circle" label="Fines" isActive={router.pathname.startsWith('/fines')} collapsed={collapsed} onClick={closeMobile} />
             </>
           )}

@@ -60,12 +60,18 @@ export default function ContributionsPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
   const [methodFilter, setMethodFilter] = useState('');
+  const [monthFilter, setMonthFilter] = useState('');
   const [sortBy, setSortBy] = useState('newest');
   const [page, setPage] = useState(1);
 
-  useEffect(() => { setPage(1); }, [search, statusFilter, methodFilter, sortBy]);
+  useEffect(() => { setPage(1); }, [search, statusFilter, methodFilter, monthFilter, sortBy]);
 
-  const filtered = filterAndSort(contributions, search, statusFilter, methodFilter, sortBy, isManager);
+  // Manager sees only verified, Member sees all their own
+  const displayContributions = isManager ? verified : contributions;
+  const filtered = filterAndSort(displayContributions, search, isManager ? '' : statusFilter, methodFilter, sortBy, isManager, monthFilter);
+
+  // Unique months for filter
+  const availableMonths = [...new Set(displayContributions.map((c: any) => `${c.month}-${c.year}`))].sort().reverse();
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -93,7 +99,7 @@ export default function ContributionsPage() {
       toast.success('Payment submitted!');
       setShowPayment(false);
       setPayTxId(''); setScreenshotUrl('');
-      loadData();
+      if (groupId) loadData(groupId, isManager);
     } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
     finally { setSubmitting(false); }
   };
@@ -103,10 +109,10 @@ export default function ContributionsPage() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">
-            {isManager ? 'All Contributions' : 'My Contributions'}
+            {isManager ? 'Contributions' : 'My Contributions'}
           </h1>
           <p className="text-sm text-gray-500">
-            {isManager ? 'All member payments in your group' : 'Your payment history and stats'}
+            {isManager ? `${verified.length} verified payments` : 'Your payment history and stats'}
           </p>
         </div>
         {!isManager && groupId && (
@@ -140,7 +146,9 @@ export default function ContributionsPage() {
               statusFilter={statusFilter} onStatusChange={setStatusFilter}
               methodFilter={methodFilter} onMethodChange={setMethodFilter}
               sortBy={sortBy} onSortChange={setSortBy}
+              monthFilter={monthFilter} onMonthChange={setMonthFilter} months={availableMonths}
               showMemberSearch={isManager}
+              hideStatus={isManager}
             />
             <ContributionList contributions={paginate(filtered, page, PAGE_SIZE)} showMember={isManager} />
             <Pagination currentPage={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
