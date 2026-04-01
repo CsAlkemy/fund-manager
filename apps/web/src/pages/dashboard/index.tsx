@@ -1,0 +1,397 @@
+import { useEffect, useState } from 'react';
+import { DashboardLayout } from '@/components/layout/DashboardLayout';
+import { StatCard } from '@/components/ui/StatCard';
+import { Modal } from '@/components/ui/Modal';
+import { ContributionFilters, filterAndSort } from '@/components/ui/ContributionFilters';
+import { ContributionList } from '@/components/ui/ContributionList';
+import { Pagination, paginate } from '@/components/ui/Pagination';
+import { useAuth } from '@/hooks/useAuth';
+import { api } from '@/lib/api';
+import toast from 'react-hot-toast';
+import { PiggyBank, AlertTriangle, Clock, Wallet, Users, DollarSign, Hourglass, LayoutGrid } from 'lucide-react';
+
+const PAGE_SIZE = 10;
+
+// ─── MEMBER DASHBOARD ──────────────────────────────────
+function MemberDashboard() {
+  const { user } = useAuth();
+  const [stats, setStats] = useState({ totalSaved: 0, totalFines: 0, pendingPayments: 0 });
+  const [contributions, setContributions] = useState<any[]>([]);
+  const [groupId, setGroupId] = useState<string | null>(null);
+  const [group, setGroup] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  // Payment modal
+  const [showPayment, setShowPayment] = useState(false);
+  const [payMonth, setPayMonth] = useState(new Date().getMonth() + 1);
+  const [payYear, setPayYear] = useState(new Date().getFullYear());
+  const [payAmount, setPayAmount] = useState(1000);
+  const [payMethod, setPayMethod] = useState<'BKASH' | 'BANK'>('BKASH');
+  const [payTxId, setPayTxId] = useState('');
+  const [screenshotUrl, setScreenshotUrl] = useState('');
+  const [uploading, setUploading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
+
+  // Filters
+  const [search, setSearch] = useState('');
+  const [statusFilter, setStatusFilter] = useState('');
+  const [methodFilter, setMethodFilter] = useState('');
+  const [sortBy, setSortBy] = useState('newest');
+  const [page, setPage] = useState(1);
+
+  useEffect(() => { setPage(1); }, [search, statusFilter, methodFilter, sortBy]);
+
+  const memberGroupId = user?.memberships?.[0]?.group.id || null;
+
+  const loadMemberData = (gId: string) => {
+    Promise.all([
+      api.get(`/groups/${gId}`),
+      api.get(`/groups/${gId}/contributions/my`),
+      api.get(`/groups/${gId}/fines/my`),
+    ]).then(([g, c, f]) => {
+      setGroupId(gId);
+      setGroup(g.data);
+      setContributions(c.data);
+      setPayAmount(g.data.monthlyAmount || 1000);
+
+      const verified = c.data.filter((x: any) => x.status === 'VERIFIED');
+      const pending = c.data.filter((x: any) => x.status === 'PENDING');
+      setStats({
+        totalSaved: verified.reduce((a: number, x: any) => a + x.amount, 0),
+        totalFines: f.data.reduce((a: number, x: any) => a + x.amount, 0),
+        pendingPayments: pending.length,
+      });
+    }).catch(() => {}).finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    if (!memberGroupId) { setLoading(false); return; }
+    loadMemberData(memberGroupId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [memberGroupId]);
+
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await api.post('/upload/screenshot', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
+      setScreenshotUrl(res.data.url);
+    } catch { toast.error('Upload failed'); }
+    finally { setUploading(false); }
+  };
+
+  const handleSubmitPayment = async () => {
+    if (!screenshotUrl) { toast.error('Screenshot is required'); return; }
+    if (!payTxId) { toast.error('Transaction ID is required'); return; }
+    if (!groupId) return;
+    setSubmitting(true);
+    try {
+      await api.post(`/groups/${groupId}/contributions`, {
+        month: payMonth, year: payYear, amount: payAmount,
+        paymentMethod: payMethod, transactionId: payTxId, screenshotUrl,
+      });
+      toast.success('Payment submitted!');
+      setShowPayment(false);
+      setPayTxId(''); setScreenshotUrl('');
+      // Reload
+      const c = await api.get(`/groups/${groupId}/contributions/my`);
+      setContributions(c.data);
+      const verified = c.data.filter((x: any) => x.status === 'VERIFIED');
+      const pending = c.data.filter((x: any) => x.status === 'PENDING');
+      setStats((s) => ({ ...s, totalSaved: verified.reduce((a: number, x: any) => a + x.amount, 0), pendingPayments: pending.length }));
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+    finally { setSubmitting(false); }
+  };
+
+  if (loading) return <p className="text-gray-400">Loading...</p>;
+
+  if (!groupId) {
+    return (
+      <div className="text-center py-16">
+        <p className="text-2xl mb-2">🏠</p>
+        <p className="text-gray-500 font-medium">You're not in any group yet</p>
+        <p className="text-sm text-gray-400 mt-1">Your group manager will add you. Please wait.</p>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard</h1>
+          <p className="text-sm text-gray-500">{group?.name} · Welcome, {user?.name}</p>
+        </div>
+        <button onClick={() => setShowPayment(true)} className="rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 whitespace-nowrap shrink-0 w-full sm:w-auto">
+          + Add Payment
+        </button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+        <StatCard title="Total Saved" value={`৳${stats.totalSaved.toLocaleString()}`} change="Verified contributions" changeType="positive" color="green" icon={PiggyBank} />
+        <StatCard title="Total Fines" value={`৳${stats.totalFines.toLocaleString()}`} change={stats.totalFines > 0 ? 'Outstanding' : 'No fines!'} changeType={stats.totalFines > 0 ? 'negative' : 'positive'} color="red" icon={AlertTriangle} />
+        <StatCard title="Pending Payments" value={String(stats.pendingPayments)} change="Awaiting verification" changeType="neutral" color="yellow" icon={Clock} />
+      </div>
+
+      {/* Contributions with Filters */}
+      <div className="rounded-xl bg-white p-6 border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">My Contributions</h2>
+        {contributions.length === 0 ? (
+          <p className="text-sm text-gray-400 py-4">No contributions yet. Submit your first payment!</p>
+        ) : (
+          <>
+            <ContributionFilters
+              search={search} onSearchChange={setSearch}
+              statusFilter={statusFilter} onStatusChange={setStatusFilter}
+              methodFilter={methodFilter} onMethodChange={setMethodFilter}
+              sortBy={sortBy} onSortChange={setSortBy}
+            />
+            {(() => {
+              const filtered = filterAndSort(contributions, search, statusFilter, methodFilter, sortBy);
+              return (
+                <>
+                  <ContributionList contributions={paginate(filtered, page, PAGE_SIZE)} />
+                  <Pagination currentPage={page} totalItems={filtered.length} pageSize={PAGE_SIZE} onPageChange={setPage} />
+                </>
+              );
+            })()}
+          </>
+        )}
+      </div>
+
+      {/* Submit Payment Modal */}
+      <Modal isOpen={showPayment} onClose={() => setShowPayment(false)} title="Add Payment">
+        <div className="space-y-4">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+              <select value={payMonth} onChange={(e) => setPayMonth(Number(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary">
+                {Array.from({ length: 12 }, (_, i) => (
+                  <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+              <input type="number" value={payYear} onChange={(e) => setPayYear(Number(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary" />
+            </div>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Amount (৳)</label>
+            <input type="number" value={payAmount} onChange={(e) => setPayAmount(Number(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <select value={payMethod} onChange={(e) => setPayMethod(e.target.value as any)} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary">
+              <option value="BKASH">bKash</option>
+              <option value="BANK">Bank Transfer</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
+            <input value={payTxId} onChange={(e) => setPayTxId(e.target.value)} placeholder="e.g. TXN123456789" className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary" />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Screenshot Proof <span className="text-red-500">*</span></label>
+            <input type="file" accept="image/*" onChange={handleUpload} className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20" />
+            {uploading && <p className="mt-1 text-xs text-gray-400">Uploading...</p>}
+            {screenshotUrl && <p className="mt-1 text-xs text-green-600">Uploaded ✓</p>}
+          </div>
+          <button onClick={handleSubmitPayment} disabled={submitting || uploading || !screenshotUrl} className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50">
+            {submitting ? 'Submitting...' : 'Submit Payment'}
+          </button>
+        </div>
+      </Modal>
+    </>
+  );
+}
+
+// ─── MANAGER DASHBOARD ─────────────────────────────────
+function ManagerDashboard() {
+  const { user } = useAuth();
+  const [group, setGroup] = useState<any>(null);
+  const [summary, setSummary] = useState<any>(null);
+  const [pending, setPending] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const groupId = user?.memberships?.find((m) => m.role === 'MANAGER')?.group.id;
+
+  useEffect(() => {
+    if (!groupId) { setLoading(false); return; }
+    Promise.all([
+      api.get(`/groups/${groupId}`),
+      api.get(`/groups/${groupId}/summary`),
+      api.get(`/groups/${groupId}/contributions/pending`),
+    ]).then(([g, s, p]) => {
+      setGroup(g.data);
+      setSummary(s.data);
+      setPending(p.data);
+    }).finally(() => setLoading(false));
+  }, [groupId]);
+
+  const handleVerify = async (id: string) => {
+    try {
+      await api.patch(`/groups/${groupId}/contributions/${id}/verify`, { status: 'VERIFIED' });
+      toast.success('Approved!');
+      setPending((prev) => prev.filter((p) => p.id !== id));
+    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+  };
+
+  if (loading) return <p className="text-gray-400">Loading...</p>;
+  if (!group) return <p className="text-gray-500">No group assigned. Contact your admin.</p>;
+
+  return (
+    <>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
+        <p className="text-sm text-gray-500">Manager Dashboard · {group.memberships?.length || 0} members</p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <StatCard title="Fund Balance" value={`৳${(summary?.totalCollected || 0).toLocaleString()}`} color="green" icon={Wallet} />
+        <StatCard title="Contributions" value={`৳${(summary?.totalContributions || 0).toLocaleString()}`} color="blue" icon={DollarSign} />
+        <StatCard title="Fines" value={`৳${(summary?.totalFines || 0).toLocaleString()}`} color="red" icon={AlertTriangle} />
+        <StatCard title="Pending" value={String(pending.length)} change={pending.length > 0 ? 'Needs attention' : 'All clear'} changeType={pending.length > 0 ? 'negative' : 'positive'} color="yellow" icon={Hourglass} />
+      </div>
+
+      {pending.length > 0 && (
+        <div className="rounded-xl bg-white p-6 border border-orange-200 mb-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Pending Verifications</h2>
+          <div className="space-y-3">
+            {pending.map((c) => (
+              <div key={c.id} className="flex items-center justify-between border-b border-gray-50 pb-3">
+                <div className="flex items-center gap-3">
+                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-medium">{c.user.name.charAt(0)}</div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900">{c.user.name}</p>
+                    <p className="text-xs text-gray-500">{c.paymentMethod} · ৳{c.amount} · {new Date(0, c.month - 1).toLocaleString('en', { month: 'short' })} {c.year}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2">
+                  {c.screenshotUrl && <a href={`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Proof</a>}
+                  <button onClick={() => handleVerify(c.id)} className="rounded bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600">Approve</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div className="rounded-xl bg-white p-6 border border-gray-100">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Members</h2>
+        <table className="w-full text-sm">
+          <thead><tr className="border-b border-gray-100"><th className="pb-3 text-left font-medium text-gray-500">Name</th><th className="pb-3 text-left font-medium text-gray-500">Email</th><th className="pb-3 text-left font-medium text-gray-500">Role</th></tr></thead>
+          <tbody>
+            {group.memberships?.map((m: any) => (
+              <tr key={m.user.id} className="border-b border-gray-50">
+                <td className="py-3 font-medium text-gray-900">{m.user.name}</td>
+                <td className="py-3 text-gray-500">{m.user.email}</td>
+                <td className="py-3"><span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${m.role === 'MANAGER' ? 'bg-purple-100 text-purple-700' : 'bg-gray-100 text-gray-600'}`}>{m.role}</span></td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </>
+  );
+}
+
+// ─── SUPER ADMIN DASHBOARD ─────────────────────────────
+function SuperAdminDashboard() {
+  const { user } = useAuth();
+  const [groups, setGroups] = useState<any[]>([]);
+  const [totalFund, setTotalFund] = useState(0);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (!user?.id) return;
+    api.get('/admin/groups').then(async (g) => {
+      setGroups(g.data);
+      // Fetch total fund across all groups
+      const summaries = await Promise.all(
+        g.data.map((grp: any) => api.get(`/groups/${grp.id}/summary`).then((s) => s.data).catch(() => ({ totalCollected: 0 })))
+      );
+      setTotalFund(summaries.reduce((acc: number, s: any) => acc + (s.totalCollected || 0), 0));
+    }).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user?.id]);
+
+  const totalUsers = groups.reduce((acc: number, g: any) => acc + (g.memberships?.length || 0), 0);
+  const activeGroups = groups.filter((g: any) => g.status === 'ACTIVE').length;
+  const pausedGroups = groups.length - activeGroups;
+
+  return (
+    <>
+      <div className="mb-6">
+        <h1 className="text-2xl font-bold text-gray-900">Platform Overview</h1>
+        <p className="text-sm text-gray-500">Welcome back, {user?.name}</p>
+      </div>
+
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title="Active Groups" value={String(activeGroups)} color="green" icon={LayoutGrid} change={`of ${groups.length} total`} changeType="positive" />
+        <StatCard title="Paused Groups" value={String(pausedGroups)} color="yellow" icon={Clock} change={pausedGroups > 0 ? 'Needs review' : 'None paused'} changeType={pausedGroups > 0 ? 'negative' : 'positive'} />
+        <StatCard title="Fund Collected" value={`৳${totalFund.toLocaleString()}`} color="blue" icon={PiggyBank} change="Across all groups" changeType="neutral" />
+        <StatCard title="Total Users" value={String(totalUsers)} color="purple" icon={Users} change={`In ${groups.length} groups`} changeType="neutral" />
+      </div>
+
+      {/* Groups */}
+      <div className="rounded-xl bg-white p-4 sm:p-6 border border-gray-100">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Groups</h2>
+          <a href="/admin/groups" className="text-sm text-brand-primary hover:underline">View all →</a>
+        </div>
+        {loading ? <p className="text-gray-400">Loading...</p> : groups.length === 0 ? (
+          <div className="text-center py-8">
+            <p className="text-gray-500">No groups yet</p>
+            <a href="/admin/groups" className="text-sm text-brand-primary hover:underline mt-1 inline-block">Create your first group →</a>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {groups.slice(0, 5).map((g: any) => {
+              const mgr = g.memberships?.find((m: any) => m.role === 'MANAGER');
+              return (
+                <div key={g.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-50 hover:border-gray-200 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold">
+                      {g.name.charAt(0)}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">{g.name}</p>
+                      <p className="text-xs text-gray-400">
+                        {mgr ? `Manager: ${mgr.user.name}` : <span className="text-orange-500">No manager</span>}
+                        {' · '}{g.memberships?.length || 0} members · ৳{g.monthlyAmount}/mo
+                      </p>
+                    </div>
+                  </div>
+                  <span className={`inline-block rounded-full px-2 py-0.5 text-xs font-medium ${g.status === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-700'}`}>{g.status}</span>
+                </div>
+              );
+            })}
+            {groups.length > 5 && (
+              <p className="text-xs text-gray-400 text-center pt-2">and {groups.length - 5} more — <a href="/admin/groups" className="text-brand-primary hover:underline">view all</a></p>
+            )}
+          </div>
+        )}
+      </div>
+    </>
+  );
+}
+
+// ─── MAIN PAGE ─────────────────────────────────────────
+export default function DashboardPage() {
+  const { user, loading, isSuperAdmin } = useAuth();
+  const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
+
+  if (loading) return <DashboardLayout><p className="text-gray-400">Loading...</p></DashboardLayout>;
+
+  return (
+    <DashboardLayout>
+      {isSuperAdmin && <SuperAdminDashboard />}
+      {isManager && <ManagerDashboard />}
+      {!isSuperAdmin && !isManager && <MemberDashboard />}
+    </DashboardLayout>
+  );
+}

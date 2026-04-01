@@ -1,0 +1,37 @@
+import { Controller, Post, UploadedFile, UseGuards, UseInterceptors } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiConsumes } from '@nestjs/swagger';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
+import { diskStorage } from 'multer';
+import { extname } from 'path';
+
+@ApiTags('Upload')
+@Controller('upload')
+@UseGuards(JwtAuthGuard)
+@ApiBearerAuth()
+export class UploadController {
+  @Post('screenshot')
+  @ApiOperation({ summary: 'Upload a payment screenshot (max 5MB, images only)' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: diskStorage({
+        destination: './uploads',
+        filename: (_req, file, cb) => {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+          cb(null, `screenshot-${uniqueSuffix}${extname(file.originalname)}`);
+        },
+      }),
+      limits: { fileSize: 5 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadScreenshot(@UploadedFile() file: Express.Multer.File) {
+    return { url: `/uploads/${file.filename}`, filename: file.filename, size: file.size };
+  }
+}

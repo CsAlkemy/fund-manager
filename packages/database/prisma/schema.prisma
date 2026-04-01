@@ -1,0 +1,232 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───────────────────────────────────────────────
+
+enum SystemRole {
+  SUPER_ADMIN
+  USER
+}
+
+enum GroupRole {
+  MANAGER
+  MEMBER
+}
+
+enum GroupStatus {
+  ACTIVE
+  PAUSED
+  ARCHIVED
+}
+
+enum MembershipStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ContributionStatus {
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum FineStatus {
+  PENDING
+  PAID
+  WAIVED
+}
+
+enum PaymentMethod {
+  BKASH
+  BANK
+}
+
+enum InvestmentStatus {
+  ACTIVE
+  SOLD
+  MATURED
+}
+
+enum InvestmentType {
+  STOCK
+  SHARE
+  LAND
+}
+
+// ─── USER ────────────────────────────────────────────────
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  phone         String?
+  bkashNumber   String?
+  bankInfo      String?
+  systemRole    SystemRole @default(USER)
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  memberships   Membership[]
+  contributions Contribution[]
+  fines         Fine[]
+  otpCodes      OtpCode[]
+  auditLogs     AuditLog[]       @relation("AuditActor")
+
+  @@map("users")
+}
+
+// ─── OTP ─────────────────────────────────────────────────
+
+model OtpCode {
+  id        String   @id @default(cuid())
+  userId    String?
+  email     String
+  code      String
+  expiresAt DateTime
+  used      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User?    @relation(fields: [userId], references: [id])
+
+  @@index([email, code])
+  @@map("otp_codes")
+}
+
+// ─── GROUP ───────────────────────────────────────────────
+
+model Group {
+  id                 String      @id @default(cuid())
+  name               String
+  description        String?
+  monthlyAmount      Int         @default(1000)
+  fineAmount         Int         @default(100)
+  fineDeadlineDay    Int         @default(15)
+  inviteCode         String      @unique @default(cuid())
+  status             GroupStatus @default(ACTIVE)
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  memberships        Membership[]
+  contributions      Contribution[]
+  fines              Fine[]
+  investments        Investment[]
+  auditLogs          AuditLog[]
+
+  @@map("groups")
+}
+
+// ─── MEMBERSHIP ──────────────────────────────────────────
+
+model Membership {
+  id        String           @id @default(cuid())
+  userId    String
+  groupId   String
+  role      GroupRole        @default(MEMBER)
+  status    MembershipStatus @default(ACTIVE)
+  joinedAt  DateTime         @default(now())
+  leftAt    DateTime?
+
+  user      User             @relation(fields: [userId], references: [id])
+  group     Group            @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId])
+  @@map("memberships")
+}
+
+// ─── CONTRIBUTION ────────────────────────────────────────
+
+model Contribution {
+  id              String             @id @default(cuid())
+  userId          String
+  groupId         String
+  month           Int
+  year            Int
+  amount          Int
+  paymentMethod   PaymentMethod
+  transactionId   String
+  screenshotUrl   String
+  status          ContributionStatus @default(PENDING)
+  rejectionReason String?
+  verifiedBy      String?
+  verifiedAt      DateTime?
+  submittedAt     DateTime           @default(now())
+  updatedAt       DateTime           @updatedAt
+
+  user            User               @relation(fields: [userId], references: [id])
+  group           Group              @relation(fields: [groupId], references: [id])
+
+  @@unique([groupId, transactionId])
+  @@index([groupId, month, year])
+  @@index([userId, groupId])
+  @@map("contributions")
+}
+
+// ─── FINE ────────────────────────────────────────────────
+
+model Fine {
+  id          String     @id @default(cuid())
+  userId      String
+  groupId     String
+  month       Int
+  year        Int
+  amount      Int
+  status      FineStatus @default(PENDING)
+  waivedBy    String?
+  waiveReason String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  user        User       @relation(fields: [userId], references: [id])
+  group       Group      @relation(fields: [groupId], references: [id])
+
+  @@unique([userId, groupId, month, year])
+  @@map("fines")
+}
+
+// ─── INVESTMENT (Phase 2) ────────────────────────────────
+
+model Investment {
+  id            String           @id @default(cuid())
+  groupId       String
+  type          InvestmentType
+  description   String
+  amount        Int
+  currentValue  Int
+  status        InvestmentStatus @default(ACTIVE)
+  metadata      Json?
+  createdBy     String
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  group         Group            @relation(fields: [groupId], references: [id])
+
+  @@map("investments")
+}
+
+// ─── AUDIT LOG ───────────────────────────────────────────
+
+model AuditLog {
+  id        String   @id @default(cuid())
+  actorId   String
+  groupId   String?
+  action    String
+  entity    String
+  entityId  String
+  details   Json?
+  createdAt DateTime @default(now())
+
+  actor     User     @relation("AuditActor", fields: [actorId], references: [id])
+  group     Group?   @relation(fields: [groupId], references: [id])
+
+  @@index([groupId, createdAt])
+  @@index([actorId])
+  @@map("audit_logs")
+}

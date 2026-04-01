@@ -1,0 +1,25 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-gray-50 text-gray-900 antialiased;
+}
+
+/* NProgress bar */
+#nprogress .bar {
+  background: #4a7c59 !important;
+  height: 3px !important;
+}
+#nprogress .peg {
+  box-shadow: 0 0 10px #4a7c59, 0 0 5px #4a7c59 !important;
+}
+
+/* ── Mobile touch-friendly defaults ── */
+@media (max-width: 768px) {
+  input, select, textarea { font-size: 16px !important; }
+  button { min-height: 44px; }
+
+  /* Horizontal scroll for data tables */
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
