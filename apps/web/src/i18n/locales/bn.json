@@ -388,6 +388,9 @@
   "admin.descriptionOptionalLabel": "বিবরণ (ঐচ্ছিক)",
   "admin.fullNamePlaceholder": "পুরো নাম",
   "admin.managerEmailPlaceholder": "manager@example.com",
+  "admin.managerPasswordPlaceholder": "একটি পাসওয়ার্ড সেট করুন",
+  "admin.managerPasswordHint": "ম্যানেজারকে লগইন করতে এটি শেয়ার করুন",
+  "admin.mgrFieldsRequired": "নাম, ইমেইল এবং পাসওয়ার্ড আবশ্যক",
 
   "groups.fundGroupDefault": "ফান্ড গ্রুপ",
   "groups.membersCount": "{{count}} জন সদস্য",

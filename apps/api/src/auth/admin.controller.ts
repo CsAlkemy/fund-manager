@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards } from '@nestjs/common';
+import { Controller, Get, Post, Patch, Delete, Param, Body, Query, UseGuards, BadRequestException } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
 import { RolesGuard } from '../common/guards/roles.guard';
@@ -6,6 +6,7 @@ import { SystemRoles } from '../common/decorators/roles.decorator';
 import { CurrentUser } from '../common/decorators/user.decorator';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuditService } from '../audit/audit.service';
+import * as bcrypt from 'bcryptjs';
 
 @ApiTags('Admin')
 @Controller('admin')
@@ -35,6 +36,22 @@ export class AdminController {
       this.prisma.user.count(),
     ]);
     return { users, total, page: p, limit: l };
+  }
+
+  @Post('users')
+  @ApiOperation({ summary: 'Create a user (Super Admin only)' })
+  async createUser(
+    @CurrentUser('sub') actorId: string,
+    @Body() body: { email: string; password: string; name: string; phone?: string },
+  ): Promise<any> {
+    const existing = await this.prisma.user.findUnique({ where: { email: body.email } });
+    if (existing) throw new BadRequestException('Email already registered');
+    const hashedPassword = await bcrypt.hash(body.password, 10);
+    const user = await this.prisma.user.create({
+      data: { email: body.email, password: hashedPassword, name: body.name, phone: body.phone },
+    });
+    await this.auditService.log(actorId, null, 'CREATE', 'User', user.id, { email: user.email });
+    return user;
   }
 
   @Get('groups')

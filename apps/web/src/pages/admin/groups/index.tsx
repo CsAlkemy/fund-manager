@@ -35,6 +35,7 @@ export default function AdminGroupsPage() {
   const [mgrName, setMgrName] = useState('');
   const [mgrEmail, setMgrEmail] = useState('');
   const [mgrPhone, setMgrPhone] = useState('');
+  const [mgrPassword, setMgrPassword] = useState('');
   const [selectedMgrId, setSelectedMgrId] = useState('');
   const [showExistingManagers, setShowExistingManagers] = useState(false);
   const [creatingGroup, setCreatingGroup] = useState(false);
@@ -56,7 +57,7 @@ export default function AdminGroupsPage() {
 
   const resetCreateForm = () => {
     setCName(''); setCDesc(''); setCMonthly(1000); setCFine(100); setCDeadline(15);
-    setMgrName(''); setMgrEmail(''); setMgrPhone(''); setSelectedMgrId('');
+    setMgrName(''); setMgrEmail(''); setMgrPhone(''); setMgrPassword(''); setSelectedMgrId('');
     setCreateStep(1); setShowExistingManagers(false);
   };
 
@@ -67,7 +68,7 @@ export default function AdminGroupsPage() {
 
   const onCreateGroup = async () => {
     const isNewMgr = !showExistingManagers;
-    if (isNewMgr && (!mgrName.trim() || !mgrEmail.trim())) { toast.error(t('admin.mgrNameEmailRequired')); return; }
+    if (isNewMgr && (!mgrName.trim() || !mgrEmail.trim() || !mgrPassword.trim())) { toast.error(t('admin.mgrFieldsRequired')); return; }
     if (showExistingManagers && !selectedMgrId) { toast.error(t('admin.managerRequired')); return; }
     setCreatingGroup(true);
     try {
@@ -76,14 +77,8 @@ export default function AdminGroupsPage() {
       });
       let managerId = selectedMgrId;
       if (isNewMgr) {
-        await api.post('/auth/request-otp', { email: mgrEmail });
-        const verifyRes = await api.post('/auth/verify-otp', { email: mgrEmail, code: '000000' });
-        const usersRes = await api.get('/admin/users');
-        const newUser = usersRes.data.users.find((u: any) => u.email === mgrEmail);
-        if (newUser) {
-          managerId = newUser.id;
-          if (mgrName) await api.post('/auth/register', { name: mgrName, phone: mgrPhone }, { headers: { Authorization: `Bearer ${verifyRes.data.token}` } });
-        }
+        const newUser = await api.post('/admin/users', { email: mgrEmail, password: mgrPassword, name: mgrName, phone: mgrPhone || undefined });
+        managerId = newUser.data.id;
       }
       if (managerId) await api.patch(`/admin/groups/${res.data.id}/manager`, { managerId });
       toast.success(t('groups.created'));
@@ -370,6 +365,11 @@ export default function AdminGroupsPage() {
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">{t('admin.managerPhone')}</label>
                   <input value={mgrPhone} onChange={(e) => setMgrPhone(e.target.value)} className={inputCls} placeholder="+880 1XXX XXXXXX" />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.password')} <span className="text-red-500">*</span></label>
+                  <input type="password" value={mgrPassword} onChange={(e) => setMgrPassword(e.target.value)} className={inputCls} placeholder={t('admin.managerPasswordPlaceholder')} />
+                  <p className="mt-1 text-xs text-gray-400">{t('admin.managerPasswordHint')}</p>
                 </div>
                 <div className="border-t border-gray-100 pt-3">
                   <button onClick={() => setShowExistingManagers(true)} className="w-full text-xs text-gray-500 hover:text-brand-primary py-1.5 text-center">{t('admin.selectExisting')}</button>

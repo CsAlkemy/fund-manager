@@ -388,6 +388,9 @@
   "admin.descriptionOptionalLabel": "Description (optional)",
   "admin.fullNamePlaceholder": "Full name",
   "admin.managerEmailPlaceholder": "manager@example.com",
+  "admin.managerPasswordPlaceholder": "Set a password",
+  "admin.managerPasswordHint": "Share this with the manager so they can log in",
+  "admin.mgrFieldsRequired": "Name, email, and password are required",
 
   "groups.fundGroupDefault": "Fund Group",
   "groups.membersCount": "{{count}} members",
