@@ -5,6 +5,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import { cn } from '@/lib/cn';
+import { useTranslation } from '@/i18n/useTranslation';
 
 const PAGE_SIZE = 10;
 
@@ -17,6 +18,7 @@ const actionBadge = (action: string) => {
 };
 
 export default function AdminAuditPage() {
+  const { t } = useTranslation();
   const { isSuperAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
   const [logs, setLogs] = useState<any[]>([]);
@@ -78,43 +80,43 @@ export default function AdminAuditPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Audit Logs</h1>
-        <p className="text-sm text-gray-500">{total} events logged</p>
+        <h1 className="text-2xl font-bold text-gray-900">{t('admin.auditLogs')}</h1>
+        <p className="text-sm text-gray-500">{t('admin.eventsLogged', { count: total })}</p>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 mb-4 sm:justify-end">
         <select value={actionFilter} onChange={(e) => setActionFilter(e.target.value)} className={selectCls}>
-          <option value="">All Actions</option>
+          <option value="">{t('filter.allActions')}</option>
           {actions.map((a) => <option key={a} value={a}>{a}</option>)}
         </select>
         <select value={entityFilter} onChange={(e) => setEntityFilter(e.target.value)} className={selectCls}>
-          <option value="">All Entities</option>
+          <option value="">{t('filter.allEntities')}</option>
           {entities.map((e) => <option key={e} value={e}>{e}</option>)}
         </select>
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={selectCls}>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
+          <option value="newest">{t('filter.newest')}</option>
+          <option value="oldest">{t('filter.oldest')}</option>
         </select>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search actor, group, details..."
+          placeholder={t('filter.searchAudit')}
           className="sm:w-64 rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         />
         {hasFilters && (
           <button onClick={() => { setSearch(''); setActionFilter(''); setEntityFilter(''); setSortBy('newest'); }} className="text-xs text-gray-400 hover:text-gray-600 px-2 py-2">
-            Clear
+            {t('common.clear')}
           </button>
         )}
       </div>
 
       <div className="rounded-xl bg-white border border-gray-100 overflow-hidden">
         {loading ? (
-          <p className="text-gray-400 p-6">Loading...</p>
+          <p className="text-gray-400 p-6">{t('common.loading')}</p>
         ) : filtered.length === 0 ? (
-          <p className="text-gray-400 p-6 text-center">{logs.length === 0 ? 'No audit events yet' : 'No logs match your filters'}</p>
+          <p className="text-gray-400 p-6 text-center">{logs.length === 0 ? t('admin.noAuditEvents') : t('admin.noLogsMatch')}</p>
         ) : (
           <>
             {/* Desktop Table */}
@@ -122,12 +124,12 @@ export default function AdminAuditPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50">
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Time</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Actor</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Action</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Entity</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Group</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Details</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.time')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.actor')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.action')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.entity')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.group')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.details')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -142,7 +144,7 @@ export default function AdminAuditPage() {
                           <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0">
                             {log.actor?.name?.charAt(0) || '?'}
                           </div>
-                          <span className="text-gray-900">{log.actor?.name || 'Unknown'}</span>
+                          <span className="text-gray-900">{log.actor?.name || t('audit.unknown')}</span>
                         </div>
                       </td>
                       <td className="px-5 py-3">
@@ -175,10 +177,10 @@ export default function AdminAuditPage() {
                     <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-500">
                       {log.actor?.name?.charAt(0) || '?'}
                     </div>
-                    <span className="text-sm font-medium text-gray-900">{log.actor?.name || 'Unknown'}</span>
-                    <span className="text-xs text-gray-400">on {log.entity}</span>
+                    <span className="text-sm font-medium text-gray-900">{log.actor?.name || t('audit.unknown')}</span>
+                    <span className="text-xs text-gray-400">{t('audit.on', { entity: log.entity })}</span>
                   </div>
-                  {log.group?.name && <p className="text-xs text-gray-400">Group: {log.group.name}</p>}
+                  {log.group?.name && <p className="text-xs text-gray-400">{t('groups.groupPrefix', { name: log.group.name })}</p>}
                   {log.details && <p className="text-xs text-gray-400 mt-1 truncate">{JSON.stringify(log.details)}</p>}
                 </div>
               ))}

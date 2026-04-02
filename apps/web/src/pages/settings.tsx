@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/i18n/useTranslation';
 import { cn } from '@/lib/cn';
 import toast from 'react-hot-toast';
 import {

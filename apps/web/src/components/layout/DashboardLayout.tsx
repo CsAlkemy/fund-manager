@@ -1,6 +1,7 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/i18n/useTranslation';
 import { Menu } from 'lucide-react';
 
 interface DashboardLayoutProps {
@@ -9,6 +10,7 @@ interface DashboardLayoutProps {
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { user, loading, logout } = useAuth();
+  const { t } = useTranslation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
@@ -24,7 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-400">Loading...</p>
+        <p className="text-gray-400">{t('common.loading')}</p>
       </div>
     );
   }
@@ -37,7 +39,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           <Menu className="h-6 w-6" />
         </button>
         <h1 className="ml-3 text-lg font-bold text-white">
-          <span className="text-brand-accent">✦</span> Fund Manager
+          <span className="text-brand-accent">✦</span> {t('common.appTitle')}
         </h1>
       </header>
 

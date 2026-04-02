@@ -1,10 +1,12 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/i18n/useTranslation';
 import { api } from '@/lib/api';
 
 export default function FinesPage() {
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [fines, setFines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -28,29 +30,29 @@ export default function FinesPage() {
   return (
     <DashboardLayout>
       <div className="mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">My Fines</h1>
+        <h1 className="text-2xl font-bold text-gray-900">{t('fines.title')}</h1>
         {totalPending > 0 && (
-          <p className="text-sm text-red-500">Outstanding: ৳{totalPending.toLocaleString()}</p>
+          <p className="text-sm text-red-500">{t('fines.outstanding', { amount: totalPending.toLocaleString() })}</p>
         )}
       </div>
 
       <div className="rounded-xl bg-white p-6 border border-gray-100">
         {loading ? (
-          <p className="text-gray-400">Loading...</p>
+          <p className="text-gray-400">{t('common.loading')}</p>
         ) : fines.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-2xl mb-2">🎉</p>
-            <p className="text-gray-500">No fines! You're up to date.</p>
+            <p className="text-gray-500">{t('fines.noFines')}</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100">
-                  <th className="pb-3 text-left font-medium text-gray-500">Group</th>
-                  <th className="pb-3 text-left font-medium text-gray-500">Month/Year</th>
-                  <th className="pb-3 text-left font-medium text-gray-500">Status</th>
-                  <th className="pb-3 text-right font-medium text-gray-500">Amount</th>
+                  <th className="pb-3 text-left font-medium text-gray-500">{t('table.group')}</th>
+                  <th className="pb-3 text-left font-medium text-gray-500">{t('fines.monthYear')}</th>
+                  <th className="pb-3 text-left font-medium text-gray-500">{t('table.status')}</th>
+                  <th className="pb-3 text-right font-medium text-gray-500">{t('table.amount')}</th>
                 </tr>
               </thead>
               <tbody>

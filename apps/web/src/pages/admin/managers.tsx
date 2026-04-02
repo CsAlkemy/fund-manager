@@ -5,11 +5,13 @@ import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import { cn } from '@/lib/cn';
+import { useTranslation } from '@/i18n/useTranslation';
 import { Shield, Users as UsersIcon } from 'lucide-react';
 
 const PAGE_SIZE = 10;
 
 export default function AdminManagersPage() {
+  const { t } = useTranslation();
   const { isSuperAdmin, loading: authLoading } = useAuth();
   const router = useRouter();
   const [users, setUsers] = useState<any[]>([]);
@@ -71,10 +73,10 @@ export default function AdminManagersPage() {
 
   const roleLabel = (role: string) => {
     switch (role) {
-      case 'SUPER_ADMIN': return 'Admin';
-      case 'MANAGER': return 'Manager';
-      case 'MEMBER': return 'Member';
-      default: return 'No Group';
+      case 'SUPER_ADMIN': return t('role.admin');
+      case 'MANAGER': return t('role.manager');
+      case 'MEMBER': return t('role.member');
+      default: return t('role.noGroup');
     }
   };
 
@@ -82,44 +84,44 @@ export default function AdminManagersPage() {
     <DashboardLayout>
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Users</h1>
-          <p className="text-sm text-gray-500">{users.length} registered users</p>
+          <h1 className="text-2xl font-bold text-gray-900">{t('admin.users')}</h1>
+          <p className="text-sm text-gray-500">{t('admin.usersCount', { count: users.length })}</p>
         </div>
       </div>
 
       {/* Filters */}
       <div className="flex flex-col-reverse sm:flex-row items-stretch sm:items-center gap-2 mb-4 sm:justify-end">
         <select value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)} className={selectCls}>
-          <option value="">All Roles</option>
-          <option value="SUPER_ADMIN">Admin</option>
-          <option value="MANAGER">Manager</option>
-          <option value="MEMBER">Member</option>
-          <option value="NO_GROUP">No Group</option>
+          <option value="">{t('filter.allRoles')}</option>
+          <option value="SUPER_ADMIN">{t('role.admin')}</option>
+          <option value="MANAGER">{t('role.manager')}</option>
+          <option value="MEMBER">{t('role.member')}</option>
+          <option value="NO_GROUP">{t('role.noGroup')}</option>
         </select>
         <select value={sortBy} onChange={(e) => setSortBy(e.target.value)} className={selectCls}>
-          <option value="newest">Newest</option>
-          <option value="oldest">Oldest</option>
-          <option value="name-az">Name A→Z</option>
-          <option value="name-za">Name Z→A</option>
+          <option value="newest">{t('filter.newest')}</option>
+          <option value="oldest">{t('filter.oldest')}</option>
+          <option value="name-az">{t('filter.nameAZ')}</option>
+          <option value="name-za">{t('filter.nameZA')}</option>
         </select>
         <input
           type="text"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search name, email, group..."
+          placeholder={t('filter.searchNameEmail')}
           className="sm:w-64 rounded-lg border border-gray-200 px-4 py-2 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
         />
         {(search || roleFilter || sortBy !== 'newest') && (
           <button onClick={() => { setSearch(''); setRoleFilter(''); setSortBy('newest'); }} className="text-xs text-gray-400 hover:text-gray-600 px-2 py-2">
-            Clear
+            {t('common.clear')}
           </button>
         )}
       </div>
 
       {/* User List */}
       <div className="rounded-xl bg-white border border-gray-100 overflow-hidden">
-        {loading ? <p className="text-gray-400 p-6">Loading...</p> : filtered.length === 0 ? (
-          <p className="text-gray-400 p-6 text-center">No users match your filters</p>
+        {loading ? <p className="text-gray-400 p-6">{t('common.loading')}</p> : filtered.length === 0 ? (
+          <p className="text-gray-400 p-6 text-center">{t('common.noUsersMatch')}</p>
         ) : (
           <>
             {/* Desktop Table */}
@@ -127,10 +129,10 @@ export default function AdminManagersPage() {
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-100 bg-gray-50/50">
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">User</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Email</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Role</th>
-                    <th className="px-5 py-3 text-left font-medium text-gray-500">Group</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.user')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.email')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.role')}</th>
+                    <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.group')}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -176,7 +178,7 @@ export default function AdminManagersPage() {
                       </span>
                     </div>
                     <p className="text-xs text-gray-400 truncate">{u.email}</p>
-                    {u.groupName && <p className="text-xs text-gray-400 mt-0.5">Group: {u.groupName}</p>}
+                    {u.groupName && <p className="text-xs text-gray-400 mt-0.5">{t('groups.groupPrefix', { name: u.groupName })}</p>}
                   </div>
                 </div>
               ))}

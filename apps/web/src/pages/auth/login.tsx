@@ -5,6 +5,8 @@ import { requestOtpSchema, type RequestOtpInput } from '@fund-manager/shared';
 import { z } from 'zod';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
+import { useAuth } from '@/hooks/useAuth';
+import { useTranslation } from '@/i18n/useTranslation';
 import toast from 'react-hot-toast';
 
 const otpCodeSchema = z.object({
@@ -14,6 +16,8 @@ type OtpCodeInput = z.infer<typeof otpCodeSchema>;
 
 export default function LoginPage() {
   const router = useRouter();
+  const { refresh } = useAuth(false);
+  const { t } = useTranslation();
   const [step, setStep] = useState<'email' | 'otp'>('email');
   const [email, setEmail] = useState('');
 
@@ -32,9 +36,9 @@ export default function LoginPage() {
       setEmail(data.email);
       setStep('otp');
       otpForm.reset({ code: '' });
-      toast.success('OTP sent to your email!');
+      toast.success(t('auth.otpSent'));
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Failed to send OTP');
+      toast.error(err.response?.data?.message || t('auth.failedOtp'));
     }
   };
 
@@ -42,13 +46,14 @@ export default function LoginPage() {
     try {
       const res = await api.post('/auth/verify-otp', { email, code: data.code });
       localStorage.setItem('token', res.data.token);
+      await refresh();
       if (res.data.isNewUser) {
         router.push('/auth/register');
       } else {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      toast.error(err.response?.data?.message || 'Invalid OTP');
+      toast.error(err.response?.data?.message || t('auth.invalidOtp'));
     }
   };
 
@@ -57,25 +62,25 @@ export default function LoginPage() {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-gray-900">
-            <span className="text-brand-primary">✦</span> Fund Manager
+            <span className="text-brand-primary">✦</span> {t('common.appTitle')}
           </h1>
-          <p className="text-sm text-gray-500 mt-2">Track every taka, trust every transaction</p>
+          <p className="text-sm text-gray-500 mt-2">{t('common.tagline')}</p>
         </div>
 
         <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
           {step === 'email' ? (
             <form onSubmit={emailForm.handleSubmit(onRequestOtp)} autoComplete="off">
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">Sign In</h2>
-              <p className="text-sm text-gray-500 mb-6">Enter your email to receive a one-time code</p>
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('auth.signIn')}</h2>
+              <p className="text-sm text-gray-500 mb-6">{t('auth.enterEmail')}</p>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.email')}</label>
                 <input
                   type="email"
                   autoComplete="email"
                   {...emailForm.register('email')}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-                  placeholder="you@example.com"
+                  placeholder={t('auth.emailPlaceholder')}
                 />
                 {emailForm.formState.errors.email && (
                   <p className="mt-1 text-xs text-red-500">{emailForm.formState.errors.email.message}</p>
@@ -87,18 +92,18 @@ export default function LoginPage() {
                 disabled={emailForm.formState.isSubmitting}
                 className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
               >
-                {emailForm.formState.isSubmitting ? 'Sending...' : 'Send OTP'}
+                {emailForm.formState.isSubmitting ? t('auth.sending') : t('auth.sendOtp')}
               </button>
             </form>
           ) : (
             <form onSubmit={otpForm.handleSubmit(onVerifyOtp)} autoComplete="off">
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">Enter OTP</h2>
+              <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('auth.enterOtp')}</h2>
               <p className="text-sm text-gray-500 mb-6">
-                We sent a 6-digit code to <strong>{email}</strong>
+                {t('auth.otpSentTo')} <strong>{email}</strong>
               </p>
 
               <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">OTP Code</label>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.otpCode')}</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -107,7 +112,7 @@ export default function LoginPage() {
                   autoFocus
                   {...otpForm.register('code')}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-center tracking-[0.5em] outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-                  placeholder="000000"
+                  placeholder={t('auth.otpPlaceholder')}
                 />
                 {otpForm.formState.errors.code && (
                   <p className="mt-1 text-xs text-red-500">{otpForm.formState.errors.code.message}</p>
@@ -119,7 +124,7 @@ export default function LoginPage() {
                 disabled={otpForm.formState.isSubmitting}
                 className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
               >
-                {otpForm.formState.isSubmitting ? 'Verifying...' : 'Verify & Sign In'}
+                {otpForm.formState.isSubmitting ? t('auth.verifying') : t('auth.verify')}
               </button>
 
               <button
@@ -127,7 +132,7 @@ export default function LoginPage() {
                 onClick={() => setStep('email')}
                 className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700"
               >
-                ← Use a different email
+                {t('auth.differentEmail')}
               </button>
             </form>
           )}

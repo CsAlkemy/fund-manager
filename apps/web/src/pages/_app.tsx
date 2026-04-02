@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app';
 import { useRouter } from 'next/router';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from '@/hooks/AuthProvider';
+import { TranslationProvider } from '@/i18n/TranslationProvider';
 import NProgress from 'nprogress';
 import 'nprogress/nprogress.css';
 import '@/styles/globals.css';
@@ -28,9 +29,11 @@ export default function App({ Component, pageProps }: AppProps) {
   }, [router]);
 
   return (
-    <AuthProvider>
-      <Component {...pageProps} />
-      <Toaster position="top-right" />
-    </AuthProvider>
+    <TranslationProvider>
+      <AuthProvider>
+        <Component {...pageProps} />
+        <Toaster position="top-right" />
+      </AuthProvider>
+    </TranslationProvider>
   );
 }

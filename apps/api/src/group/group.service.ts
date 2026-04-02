@@ -107,7 +107,7 @@ export class GroupService {
   }
 
   async getGroupSummary(groupId: string) {
-    const [group, totalContributions, totalFines, memberCount] = await Promise.all([
+    const [group, totalContributions, finesPaid, finesPending, finesAll, memberCount] = await Promise.all([
       this.prisma.group.findUnique({ where: { id: groupId } }),
       this.prisma.contribution.aggregate({
         where: { groupId, status: 'VERIFIED' },
@@ -117,14 +117,29 @@ export class GroupService {
         where: { groupId, status: 'PAID' },
         _sum: { amount: true },
       }),
+      this.prisma.fine.aggregate({
+        where: { groupId, status: 'PENDING' },
+        _sum: { amount: true },
+      }),
+      this.prisma.fine.aggregate({
+        where: { groupId },
+        _sum: { amount: true },
+      }),
       this.prisma.membership.count({ where: { groupId, status: 'ACTIVE' } }),
     ]);
 
+    const contributions = totalContributions._sum.amount || 0;
+    const paidFines = finesPaid._sum.amount || 0;
+    const pendingFinesAmt = finesPending._sum.amount || 0;
+    const allFines = finesAll._sum.amount || 0;
+
     return {
       group,
-      totalCollected: (totalContributions._sum.amount || 0) + (totalFines._sum.amount || 0),
-      totalContributions: totalContributions._sum.amount || 0,
-      totalFines: totalFines._sum.amount || 0,
+      totalCollected: contributions + paidFines,
+      totalContributions: contributions,
+      totalFines: allFines,
+      totalFinesPaid: paidFines,
+      totalFinesPending: pendingFinesAmt,
       memberCount,
     };
   }

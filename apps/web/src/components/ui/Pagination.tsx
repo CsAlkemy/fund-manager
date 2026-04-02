@@ -1,5 +1,6 @@
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface PaginationProps {
   currentPage: number;
@@ -9,6 +10,7 @@ interface PaginationProps {
 }
 
 export function Pagination({ currentPage, totalItems, pageSize, onPageChange }: PaginationProps) {
+  const { t } = useTranslation();
   const totalPages = Math.ceil(totalItems / pageSize);
   if (totalPages <= 1) return null;
 
@@ -28,7 +30,7 @@ export function Pagination({ currentPage, totalItems, pageSize, onPageChange }: 
 
   return (
     <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4">
-      <p className="text-xs text-gray-400">Showing {from}–{to} of {totalItems}</p>
+      <p className="text-xs text-gray-400">{t('common.showingOf', { from, to, total: totalItems })}</p>
       <div className="flex items-center gap-1">
         <button
           onClick={() => onPageChange(currentPage - 1)}

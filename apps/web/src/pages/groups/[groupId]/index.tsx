@@ -3,11 +3,14 @@ import { useRouter } from 'next/router';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { StatCard } from '@/components/ui/StatCard';
 import { Modal } from '@/components/ui/Modal';
+import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
+import { useTranslation } from '@/i18n/useTranslation';
 
 export default function GroupDetailPage() {
+  const { t, locale } = useTranslation();
   const router = useRouter();
   const { groupId } = router.query;
   const { user, isSuperAdmin, getGroupRole } = useAuth();
@@ -23,6 +26,9 @@ export default function GroupDetailPage() {
   const [showReject, setShowReject] = useState<string | null>(null);
   const [addEmail, setAddEmail] = useState('');
   const [rejectReason, setRejectReason] = useState('');
+  const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
+  const [removing, setRemoving] = useState(false);
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   // Payment form state
   const [payMonth, setPayMonth] = useState(new Date().getMonth() + 1);
@@ -52,7 +58,7 @@ export default function GroupDetailPage() {
         const p = await api.get(`/groups/${groupId}/contributions/pending`);
         setPending(p.data);
       }
-    } catch { toast.error('Failed to load group'); }
+    } catch { toast.error(t('common.failedToLoad')); }
     finally { setLoading(false); }
   };
 
@@ -61,42 +67,45 @@ export default function GroupDetailPage() {
   const handleVerify = async (contributionId: string) => {
     try {
       await api.patch(`/groups/${groupId}/contributions/${contributionId}/verify`, { status: 'VERIFIED' });
-      toast.success('Payment approved!');
+      toast.success(t('verify.approved'));
       setPending((prev) => prev.filter((p) => p.id !== contributionId));
       loadData();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || t('common.failedGeneric')); }
   };
 
   const handleReject = async () => {
     if (!showReject || !rejectReason) return;
     try {
       await api.patch(`/groups/${groupId}/contributions/${showReject}/verify`, { status: 'REJECTED', rejectionReason: rejectReason });
-      toast.success('Payment rejected');
+      toast.success(t('verify.rejected'));
       setPending((prev) => prev.filter((p) => p.id !== showReject));
       setShowReject(null);
       setRejectReason('');
       loadData();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || t('common.failedGeneric')); }
   };
 
   const handleAddMember = async () => {
     if (!addEmail) return;
     try {
       await api.post(`/groups/${groupId}/members`, { email: addEmail });
-      toast.success('Member added!');
+      toast.success(t('members.added'));
       setShowAddMember(false);
       setAddEmail('');
       loadData();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || t('common.failedGeneric')); }
   };
 
-  const handleRemoveMember = async (memberId: string, name: string) => {
-    if (!confirm(`Remove ${name} from this group?`)) return;
+  const handleRemoveMember = async () => {
+    if (!removeTarget) return;
+    setRemoving(true);
     try {
-      await api.delete(`/groups/${groupId}/members/${memberId}`);
-      toast.success('Member removed');
+      await api.delete(`/groups/${groupId}/members/${removeTarget.id}`);
+      toast.success(t('members.removed'));
+      setRemoveTarget(null);
       loadData();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || t('common.failedGeneric')); }
+    finally { setRemoving(false); }
   };
 
   const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -108,45 +117,49 @@ export default function GroupDetailPage() {
     try {
       const res = await api.post('/upload/screenshot', fd, { headers: { 'Content-Type': 'multipart/form-data' } });
       setScreenshotUrl(res.data.url);
-      toast.success('Screenshot uploaded');
-    } catch { toast.error('Upload failed'); }
+      toast.success(t('groups.screenshotUploaded'));
+    } catch { toast.error(t('payment.uploadFailed')); }
     finally { setUploading(false); }
   };
 
   const handleSubmitPayment = async () => {
-    if (!screenshotUrl) { toast.error('Screenshot is required'); return; }
-    if (!payTxId) { toast.error('Transaction ID is required'); return; }
+    const errors: Record<string, string> = {};
+    if (!payTxId.trim()) errors.txId = t('payment.txIdRequired');
+    if (!screenshotUrl) errors.screenshot = t('payment.screenshotRequired');
+    if (payAmount <= 0) errors.amount = t('payment.amountPositive');
+    setFormErrors(errors);
+    if (Object.keys(errors).length > 0) return;
     setSubmitting(true);
     try {
       await api.post(`/groups/${groupId}/contributions`, {
         month: payMonth, year: payYear, amount: payAmount,
         paymentMethod: payMethod, transactionId: payTxId, screenshotUrl,
       });
-      toast.success('Payment submitted!');
+      toast.success(t('payment.submitted'));
       setShowSubmitPayment(false);
       setPayTxId(''); setScreenshotUrl('');
       loadData();
-    } catch (err: any) { toast.error(err.response?.data?.message || 'Failed'); }
+    } catch (err: any) { toast.error(err.response?.data?.message || t('common.failedGeneric')); }
     finally { setSubmitting(false); }
   };
 
-  if (loading) return <DashboardLayout><p className="text-gray-400">Loading...</p></DashboardLayout>;
-  if (!group) return <DashboardLayout><p className="text-gray-500">Group not found</p></DashboardLayout>;
+  if (loading) return <DashboardLayout><p className="text-gray-400">{t('common.loading')}</p></DashboardLayout>;
+  if (!group) return <DashboardLayout><p className="text-gray-500">{t('common.groupNotFound')}</p></DashboardLayout>;
 
   return (
     <DashboardLayout>
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
-          <p className="text-sm text-gray-500">{group.description || 'Fund Group'} · Role: <span className="font-medium">{role || 'Admin'}</span></p>
+          <p className="text-sm text-gray-500">{group.description || t('groups.fundGroupDefault')} · {t('groups.roleLabel', { role: role || t('groups.adminRole') })}</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowSubmitPayment(true)} className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90">
-            + Submit Payment
+            {t('groups.submitPayment')}
           </button>
           {isManager && (
             <button onClick={() => setShowAddMember(true)} className="rounded-lg border border-gray-200 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">
-              + Add Member
+              {t('members.addMember')}
             </button>
           )}
         </div>
@@ -154,22 +167,22 @@ export default function GroupDetailPage() {
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-        <StatCard title="Fund Balance" value={`৳${(summary?.totalCollected || 0).toLocaleString()}`} />
-        <StatCard title="Contributions" value={`৳${(summary?.totalContributions || 0).toLocaleString()}`} />
-        <StatCard title="Fines Collected" value={`৳${(summary?.totalFines || 0).toLocaleString()}`} />
-        <StatCard title="Active Members" value={String(summary?.memberCount || 0)} />
+        <StatCard title={t('groups.fundBalanceLabel')} value={`৳${(summary?.totalCollected || 0).toLocaleString(locale)}`} />
+        <StatCard title={t('groups.contributionsLabel')} value={`৳${(summary?.totalContributions || 0).toLocaleString(locale)}`} />
+        <StatCard title={t('groups.finesCollectedLabel')} value={`৳${(summary?.totalFines || 0).toLocaleString(locale)}`} />
+        <StatCard title={t('groups.activeMembersLabel')} value={String(summary?.memberCount || 0)} />
       </div>
 
       {/* Invite Link (Manager) */}
       {isManager && (
         <div className="rounded-xl bg-brand-primary/5 border border-brand-primary/20 p-4 mb-6 flex items-center justify-between">
           <div>
-            <p className="text-sm font-medium text-gray-900">Invite Link</p>
-            <p className="text-xs text-gray-500">Share with new members</p>
+            <p className="text-sm font-medium text-gray-900">{t('groups.inviteLink')}</p>
+            <p className="text-xs text-gray-500">{t('groups.shareMembers')}</p>
           </div>
-          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/join?code=${group.inviteCode}`); toast.success('Copied!'); }}
+          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/join?code=${group.inviteCode}`); toast.success(t('common.copied')); }}
             className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90">
-            Copy Invite Link
+            {t('groups.copyInvite')}
           </button>
         </div>
       )}
@@ -178,7 +191,7 @@ export default function GroupDetailPage() {
       {isManager && pending.length > 0 && (
         <div className="rounded-xl bg-white p-6 border border-orange-200 mb-6">
           <h2 className="text-lg font-semibold text-gray-900 mb-4">
-            Pending Verifications <span className="text-sm font-normal text-orange-500">({pending.length})</span>
+            {t('groups.thisPendingVerifications')} <span className="text-sm font-normal text-orange-500">({pending.length})</span>
           </h2>
           <div className="space-y-3">
             {pending.map((c) => (
@@ -192,10 +205,10 @@ export default function GroupDetailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {c.screenshotUrl && (
-                    <a href={`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">Proof</a>
+                    <a href={`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">{t('groups.proofLink')}</a>
                   )}
-                  <button onClick={() => handleVerify(c.id)} className="rounded bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600">Approve</button>
-                  <button onClick={() => setShowReject(c.id)} className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600">Reject</button>
+                  <button onClick={() => handleVerify(c.id)} className="rounded bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600">{t('verify.approve')}</button>
+                  <button onClick={() => setShowReject(c.id)} className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600">{t('verify.reject')}</button>
                 </div>
               </div>
             ))}
@@ -205,14 +218,14 @@ export default function GroupDetailPage() {
 
       {/* Members */}
       <div className="rounded-xl bg-white p-6 border border-gray-100 mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Members</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('members.title')}</h2>
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
-              <th className="pb-3 text-left font-medium text-gray-500">Name</th>
-              <th className="pb-3 text-left font-medium text-gray-500">Email</th>
-              <th className="pb-3 text-left font-medium text-gray-500">Role</th>
-              {isManager && <th className="pb-3 text-right font-medium text-gray-500">Actions</th>}
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.name')}</th>
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.email')}</th>
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.role')}</th>
+              {isManager && <th className="pb-3 text-right font-medium text-gray-500">{t('table.actions')}</th>}
             </tr>
           </thead>
           <tbody>
@@ -226,7 +239,7 @@ export default function GroupDetailPage() {
                 {isManager && (
                   <td className="py-3 text-right">
                     {m.role !== 'MANAGER' && (
-                      <button onClick={() => handleRemoveMember(m.user.id, m.user.name)} className="text-xs text-red-500 hover:underline">Remove</button>
+                      <button onClick={() => setRemoveTarget({ id: m.user.id, name: m.user.name })} className="text-xs text-red-500 hover:underline">{t('common.remove')}</button>
                     )}
                   </td>
                 )}
@@ -238,17 +251,17 @@ export default function GroupDetailPage() {
 
       {/* This Month's Contributions */}
       <div className="rounded-xl bg-white p-6 border border-gray-100">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">This Month</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">{t('groups.thisMonth')}</h2>
         {contributions.length === 0 ? (
-          <p className="text-sm text-gray-400 py-4">No contributions yet</p>
+          <p className="text-sm text-gray-400 py-4">{t('groups.noContributionsYet')}</p>
         ) : (
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                <th className="pb-3 text-left font-medium text-gray-500">Member</th>
-                <th className="pb-3 text-left font-medium text-gray-500">Method</th>
-                <th className="pb-3 text-left font-medium text-gray-500">Status</th>
-                <th className="pb-3 text-right font-medium text-gray-500">Amount</th>
+                <th className="pb-3 text-left font-medium text-gray-500">{t('table.member')}</th>
+                <th className="pb-3 text-left font-medium text-gray-500">{t('table.method')}</th>
+                <th className="pb-3 text-left font-medium text-gray-500">{t('table.status')}</th>
+                <th className="pb-3 text-right font-medium text-gray-500">{t('table.amount')}</th>
               </tr>
             </thead>
             <tbody>
@@ -272,71 +285,86 @@ export default function GroupDetailPage() {
       </div>
 
       {/* Add Member Modal */}
-      <Modal isOpen={showAddMember} onClose={() => setShowAddMember(false)} title="Add Member">
-        <p className="text-sm text-gray-500 mb-4">Enter the email of a registered user to add them to this group.</p>
-        <input value={addEmail} onChange={(e) => setAddEmail(e.target.value)} type="email" placeholder="member@example.com"
+      <Modal isOpen={showAddMember} onClose={() => setShowAddMember(false)} title={t('members.addTitle')}>
+        <p className="text-sm text-gray-500 mb-4">{t('members.addNote')}</p>
+        <input value={addEmail} onChange={(e) => setAddEmail(e.target.value)} type="email" placeholder={t('members.emailPlaceholder')}
           className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary mb-4" />
         <button onClick={handleAddMember} className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90">
-          Add Member
+          {t('members.addMember')}
         </button>
       </Modal>
 
       {/* Reject Modal */}
-      <Modal isOpen={!!showReject} onClose={() => { setShowReject(null); setRejectReason(''); }} title="Reject Payment">
-        <p className="text-sm text-gray-500 mb-4">Please provide a reason for rejection.</p>
-        <input value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder="Reason for rejection"
+      <Modal isOpen={!!showReject} onClose={() => { setShowReject(null); setRejectReason(''); }} title={t('verify.rejectTitle')}>
+        <p className="text-sm text-gray-500 mb-4">{t('verify.rejectReason')}</p>
+        <input value={rejectReason} onChange={(e) => setRejectReason(e.target.value)} placeholder={t('groups.reasonPlaceholder')}
           className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary mb-4" />
         <button onClick={handleReject} disabled={!rejectReason} className="w-full rounded-lg bg-red-500 px-4 py-2.5 text-sm font-medium text-white hover:bg-red-600 disabled:opacity-50">
-          Reject Payment
+          {t('verify.rejectBtn')}
         </button>
       </Modal>
 
       {/* Submit Payment Modal */}
-      <Modal isOpen={showSubmitPayment} onClose={() => setShowSubmitPayment(false)} title="Submit Payment">
+      <Modal isOpen={showSubmitPayment} onClose={() => { setShowSubmitPayment(false); setFormErrors({}); }} title={t('groups.submitPaymentTitle')}>
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Month</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('payment.month')}</label>
               <select value={payMonth} onChange={(e) => setPayMonth(Number(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary">
                 {Array.from({ length: 12 }, (_, i) => (
-                  <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString('en', { month: 'long' })}</option>
+                  <option key={i + 1} value={i + 1}>{new Date(0, i).toLocaleString(locale, { month: 'long' })}</option>
                 ))}
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Year</label>
+              <label className="block text-sm font-medium text-gray-700 mb-1">{t('payment.year')}</label>
               <input type="number" value={payYear} onChange={(e) => setPayYear(Number(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary" />
             </div>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Amount (৳)</label>
-            <input type="number" value={payAmount} onChange={(e) => setPayAmount(Number(e.target.value))} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('payment.amount')}</label>
+            <input type="number" value={payAmount} onChange={(e) => { setPayAmount(Number(e.target.value)); setFormErrors((p) => ({ ...p, amount: '' })); }} className={`w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-1 ${formErrors.amount ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : 'border-gray-200 focus:border-brand-primary focus:ring-brand-primary'}`} />
+            {formErrors.amount && <p className="mt-1 text-xs text-red-500">{formErrors.amount}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Payment Method</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('payment.method')}</label>
             <select value={payMethod} onChange={(e) => setPayMethod(e.target.value as any)} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary">
-              <option value="BKASH">bKash</option>
-              <option value="BANK">Bank Transfer</option>
+              <option value="BKASH">{t('payment.bkash')}</option>
+              <option value="BANK">{t('payment.bank')}</option>
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Transaction ID</label>
-            <input value={payTxId} onChange={(e) => setPayTxId(e.target.value)} placeholder="e.g. TXN123456789"
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('payment.txId')} <span className="text-red-500">*</span></label>
+            <input value={payTxId} onChange={(e) => { setPayTxId(e.target.value); setFormErrors((p) => ({ ...p, txId: '' })); }} placeholder={t('payment.txIdPlaceholder')}
+              className={`w-full rounded-lg border px-4 py-2.5 text-sm outline-none focus:ring-1 ${formErrors.txId ? 'border-red-300 focus:border-red-400 focus:ring-red-200' : 'border-gray-200 focus:border-brand-primary focus:ring-brand-primary'}`} />
+            {formErrors.txId && <p className="mt-1 text-xs text-red-500">{formErrors.txId}</p>}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Screenshot Proof <span className="text-red-500">*</span></label>
-            <input type="file" accept="image/*" onChange={handleUpload}
+            <label className="block text-sm font-medium text-gray-700 mb-1">{t('payment.screenshot')} <span className="text-red-500">*</span></label>
+            <input type="file" accept="image/*" onChange={(e) => { handleUpload(e); setFormErrors((p) => ({ ...p, screenshot: '' })); }}
               className="w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-brand-primary/10 file:text-brand-primary hover:file:bg-brand-primary/20" />
-            {uploading && <p className="mt-1 text-xs text-gray-400">Uploading...</p>}
-            {screenshotUrl && <p className="mt-1 text-xs text-green-600">Uploaded ✓</p>}
+            {uploading && <p className="mt-1 text-xs text-gray-400">{t('payment.uploading')}</p>}
+            {screenshotUrl && <p className="mt-1 text-xs text-green-600">{t('payment.uploaded')}</p>}
+            {formErrors.screenshot && <p className="mt-1 text-xs text-red-500">{formErrors.screenshot}</p>}
           </div>
           <button onClick={handleSubmitPayment} disabled={submitting || uploading || !screenshotUrl}
             className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50">
-            {submitting ? 'Submitting...' : 'Submit Payment'}
+            {submitting ? t('payment.submitting') : t('payment.submitPayment')}
           </button>
         </div>
       </Modal>
+
+      {/* Remove Member Confirm */}
+      <ConfirmModal
+        isOpen={!!removeTarget}
+        onClose={() => setRemoveTarget(null)}
+        onConfirm={handleRemoveMember}
+        title={t('members.removeTitle')}
+        message={t('groups.removeConfirmMsg', { name: removeTarget?.name || '' })}
+        confirmLabel={t('common.remove')}
+        variant="danger"
+        loading={removing}
+      />
     </DashboardLayout>
   );
 }

@@ -1,4 +1,5 @@
 import { cn } from '@/lib/cn';
+import { useTranslation } from '@/i18n/useTranslation';
 
 interface ContributionListProps {
   contributions: any[];
@@ -16,8 +17,9 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export function ContributionList({ contributions, showMember = false }: ContributionListProps) {
+  const { t, locale } = useTranslation();
   if (contributions.length === 0) {
-    return <p className="text-sm text-gray-400 py-6 text-center">No contributions found</p>;
+    return <p className="text-sm text-gray-400 py-6 text-center">{t('contributions.noContributions')}</p>;
   }
 
   return (
@@ -27,12 +29,12 @@ export function ContributionList({ contributions, showMember = false }: Contribu
         <table className="w-full text-sm">
           <thead>
             <tr className="border-b border-gray-100">
-              {showMember && <th className="pb-3 text-left font-medium text-gray-500">Member</th>}
-              <th className="pb-3 text-left font-medium text-gray-500">Month</th>
-              <th className="pb-3 text-left font-medium text-gray-500">Method</th>
-              <th className="pb-3 text-left font-medium text-gray-500">TxID</th>
-              <th className="pb-3 text-left font-medium text-gray-500">Status</th>
-              <th className="pb-3 text-right font-medium text-gray-500">Amount</th>
+              {showMember && <th className="pb-3 text-left font-medium text-gray-500">{t('table.member')}</th>}
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.month')}</th>
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.method')}</th>
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.txid')}</th>
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.status')}</th>
+              <th className="pb-3 text-right font-medium text-gray-500">{t('table.amount')}</th>
             </tr>
           </thead>
           <tbody>
@@ -40,7 +42,7 @@ export function ContributionList({ contributions, showMember = false }: Contribu
               <tr key={c.id} className="border-b border-gray-50">
                 {showMember && <td className="py-3 font-medium text-gray-900">{c.user?.name || '—'}</td>}
                 <td className="py-3 text-gray-900">
-                  {new Date(0, c.month - 1).toLocaleString('en', { month: 'short' })} {c.year}
+                  {new Date(0, c.month - 1).toLocaleString(locale, { month: 'short' })} {c.year}
                 </td>
                 <td className="py-3 text-gray-500">{c.paymentMethod}</td>
                 <td className="py-3 text-gray-500 font-mono text-xs">{c.transactionId}</td>
@@ -65,7 +67,7 @@ export function ContributionList({ contributions, showMember = false }: Contribu
               <div>
                 {showMember && <p className="text-sm font-medium text-gray-900">{c.user?.name}</p>}
                 <p className="text-sm font-semibold text-gray-900">
-                  {new Date(0, c.month - 1).toLocaleString('en', { month: 'long' })} {c.year}
+                  {new Date(0, c.month - 1).toLocaleString(locale, { month: 'long' })} {c.year}
                 </p>
               </div>
               <p className="text-lg font-bold text-gray-900">৳{c.amount}</p>

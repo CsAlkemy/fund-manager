@@ -1,4 +1,4 @@
-import { createContext, useContext } from 'react';
+import { createContext, useContext, useEffect } from 'react';
 import { useRouter } from 'next/router';
 
 export interface Membership {
@@ -34,14 +34,16 @@ export function useAuth(requireAuth = true) {
   const ctx = useContext(AuthContext);
   const router = useRouter();
 
-  // Redirect if not authed and required
-  if (!ctx.loading && !ctx.user && requireAuth) {
-    if (typeof window !== 'undefined' && !router.pathname.startsWith('/auth')) {
+  // Redirect unauthenticated users
+  useEffect(() => {
+    if (!ctx.loading && !ctx.user && requireAuth && !router.pathname.startsWith('/auth')) {
       router.replace('/auth/login');
     }
-  }
+  }, [ctx.loading, ctx.user, requireAuth, router]);
 
   const isSuperAdmin = ctx.user?.systemRole === 'SUPER_ADMIN';
+  const isManager = !isSuperAdmin && (ctx.user?.memberships?.some((m) => m.role === 'MANAGER') || false);
+  const isMember = !isSuperAdmin && !isManager;
 
   const getGroupRole = (groupId: string) => {
     return ctx.user?.memberships.find((m) => m.group.id === groupId)?.role || null;
@@ -51,5 +53,24 @@ export function useAuth(requireAuth = true) {
     return isSuperAdmin || getGroupRole(groupId) === 'MANAGER';
   };
 
-  return { ...ctx, isSuperAdmin, getGroupRole, isManagerOf };
+  return { ...ctx, isSuperAdmin, isManager, isMember, getGroupRole, isManagerOf };
+}
+
+/**
+ * Hook to guard a page by role. Redirects to /dashboard if unauthorized.
+ */
+export function useRequireRole(role: 'SUPER_ADMIN' | 'MANAGER' | 'MEMBER') {
+  const { user, loading, isSuperAdmin, isManager } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (loading || !user) return;
+    let allowed = false;
+    if (role === 'SUPER_ADMIN') allowed = isSuperAdmin;
+    else if (role === 'MANAGER') allowed = isSuperAdmin || isManager;
+    else allowed = true; // MEMBER = any authenticated user
+    if (!allowed) router.replace('/dashboard');
+  }, [loading, user, role, isSuperAdmin, isManager, router]);
+
+  return { user, loading, authorized: !loading && !!user };
 }
