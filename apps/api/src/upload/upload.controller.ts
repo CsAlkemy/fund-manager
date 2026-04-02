@@ -16,7 +16,7 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       storage: diskStorage({
-        destination: './uploads',
+        destination: process.env.VERCEL ? '/tmp' : './uploads',
         filename: (_req, file, cb) => {
           const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
           cb(null, `screenshot-${uniqueSuffix}${extname(file.originalname)}`);
