@@ -5,9 +5,8 @@ import express from 'express';
 import { AppModule } from '../src/app.module';
 
 const server = express();
-let isReady = false;
 
-async function bootstrap() {
+const bootstrapPromise = (async () => {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
   app.enableCors({
     origin: process.env.FRONTEND_URL || '*',
@@ -24,14 +23,9 @@ async function bootstrap() {
   SwaggerModule.setup('docs', app, document);
 
   await app.init();
-  isReady = true;
-}
-
-bootstrap();
+})();
 
 export default async (req: any, res: any) => {
-  if (!isReady) {
-    await bootstrap();
-  }
+  await bootstrapPromise;
   server(req, res);
 };
