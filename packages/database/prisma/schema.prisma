@@ -67,6 +67,7 @@ enum InvestmentType {
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
+  password      String?
   name          String
   phone         String?
   bkashNumber   String?

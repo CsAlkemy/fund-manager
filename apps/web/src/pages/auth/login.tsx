@@ -1,59 +1,30 @@
-import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { requestOtpSchema, type RequestOtpInput } from '@fund-manager/shared';
-import { z } from 'zod';
+import { loginSchema, type LoginInput } from '@fund-manager/shared';
 import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
 import toast from 'react-hot-toast';
-
-const otpCodeSchema = z.object({
-  code: z.string().length(6, 'OTP must be 6 digits'),
-});
-type OtpCodeInput = z.infer<typeof otpCodeSchema>;
+import Link from 'next/link';
 
 export default function LoginPage() {
   const router = useRouter();
   const { refresh } = useAuth(false);
   const { t } = useTranslation();
-  const [step, setStep] = useState<'email' | 'otp'>('email');
-  const [email, setEmail] = useState('');
 
-  const emailForm = useForm<RequestOtpInput>({
-    resolver: zodResolver(requestOtpSchema),
+  const form = useForm<LoginInput>({
+    resolver: zodResolver(loginSchema),
   });
 
-  const otpForm = useForm<OtpCodeInput>({
-    resolver: zodResolver(otpCodeSchema),
-    defaultValues: { code: '' },
-  });
-
-  const onRequestOtp = async (data: RequestOtpInput) => {
+  const onSubmit = async (data: LoginInput) => {
     try {
-      await api.post('/auth/request-otp', data);
-      setEmail(data.email);
-      setStep('otp');
-      otpForm.reset({ code: '' });
-      toast.success(t('auth.otpSent'));
-    } catch (err: any) {
-      toast.error(err.response?.data?.message || t('auth.failedOtp'));
-    }
-  };
-
-  const onVerifyOtp = async (data: OtpCodeInput) => {
-    try {
-      const res = await api.post('/auth/verify-otp', { email, code: data.code });
+      const res = await api.post('/auth/login', data);
       localStorage.setItem('token', res.data.token);
       await refresh();
-      if (res.data.isNewUser) {
-        router.push('/auth/register');
-      } else {
-        router.push('/dashboard');
-      }
+      router.push('/dashboard');
     } catch (err: any) {
-      toast.error(err.response?.data?.message || t('auth.invalidOtp'));
+      toast.error(err.response?.data?.message || t('auth.loginFailed'));
     }
   };
 
@@ -68,74 +39,55 @@ export default function LoginPage() {
         </div>
 
         <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
-          {step === 'email' ? (
-            <form onSubmit={emailForm.handleSubmit(onRequestOtp)} autoComplete="off">
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('auth.signIn')}</h2>
-              <p className="text-sm text-gray-500 mb-6">{t('auth.enterEmail')}</p>
+          <form onSubmit={form.handleSubmit(onSubmit)} autoComplete="off">
+            <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('auth.signIn')}</h2>
+            <p className="text-sm text-gray-500 mb-6">{t('auth.enterCredentials')}</p>
 
-              <div className="mb-4">
+            <div className="space-y-4">
+              <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.email')}</label>
                 <input
                   type="email"
                   autoComplete="email"
-                  {...emailForm.register('email')}
+                  {...form.register('email')}
                   className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
                   placeholder={t('auth.emailPlaceholder')}
                 />
-                {emailForm.formState.errors.email && (
-                  <p className="mt-1 text-xs text-red-500">{emailForm.formState.errors.email.message}</p>
+                {form.formState.errors.email && (
+                  <p className="mt-1 text-xs text-red-500">{form.formState.errors.email.message}</p>
                 )}
               </div>
 
-              <button
-                type="submit"
-                disabled={emailForm.formState.isSubmitting}
-                className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
-              >
-                {emailForm.formState.isSubmitting ? t('auth.sending') : t('auth.sendOtp')}
-              </button>
-            </form>
-          ) : (
-            <form onSubmit={otpForm.handleSubmit(onVerifyOtp)} autoComplete="off">
-              <h2 className="text-lg font-semibold text-gray-900 mb-1">{t('auth.enterOtp')}</h2>
-              <p className="text-sm text-gray-500 mb-6">
-                {t('auth.otpSentTo')} <strong>{email}</strong>
-              </p>
-
-              <div className="mb-4">
-                <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.otpCode')}</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">{t('auth.password')}</label>
                 <input
-                  type="text"
-                  inputMode="numeric"
-                  maxLength={6}
-                  autoComplete="one-time-code"
-                  autoFocus
-                  {...otpForm.register('code')}
-                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm text-center tracking-[0.5em] outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-                  placeholder={t('auth.otpPlaceholder')}
+                  type="password"
+                  autoComplete="current-password"
+                  {...form.register('password')}
+                  className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+                  placeholder={t('auth.passwordPlaceholder')}
                 />
-                {otpForm.formState.errors.code && (
-                  <p className="mt-1 text-xs text-red-500">{otpForm.formState.errors.code.message}</p>
+                {form.formState.errors.password && (
+                  <p className="mt-1 text-xs text-red-500">{form.formState.errors.password.message}</p>
                 )}
               </div>
+            </div>
 
-              <button
-                type="submit"
-                disabled={otpForm.formState.isSubmitting}
-                className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
-              >
-                {otpForm.formState.isSubmitting ? t('auth.verifying') : t('auth.verify')}
-              </button>
+            <button
+              type="submit"
+              disabled={form.formState.isSubmitting}
+              className="mt-6 w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+            >
+              {form.formState.isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
+            </button>
 
-              <button
-                type="button"
-                onClick={() => setStep('email')}
-                className="mt-3 w-full text-sm text-gray-500 hover:text-gray-700"
-              >
-                {t('auth.differentEmail')}
-              </button>
-            </form>
-          )}
+            <p className="mt-4 text-center text-sm text-gray-500">
+              {t('auth.noAccount')}{' '}
+              <Link href="/auth/register" className="text-brand-primary hover:underline font-medium">
+                {t('auth.createAccount')}
+              </Link>
+            </p>
+          </form>
         </div>
       </div>
     </div>

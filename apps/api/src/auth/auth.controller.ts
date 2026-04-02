@@ -9,27 +9,18 @@ import { CurrentUser } from '../common/decorators/user.decorator';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @Post('request-otp')
-  @ApiOperation({ summary: 'Request OTP code via email' })
-  async requestOtp(@Body() body: { email: string }) {
-    return this.authService.requestOtp(body.email);
-  }
-
-  @Post('verify-otp')
-  @ApiOperation({ summary: 'Verify OTP and get JWT token' })
-  async verifyOtp(@Body() body: { email: string; code: string }) {
-    return this.authService.verifyOtp(body.email, body.code);
-  }
-
   @Post('register')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
-  @ApiOperation({ summary: 'Complete user registration after first login' })
+  @ApiOperation({ summary: 'Register a new account' })
   async register(
-    @CurrentUser('sub') userId: string,
-    @Body() body: { name: string; phone?: string; bkashNumber?: string },
+    @Body() body: { email: string; password: string; name: string; phone?: string; bkashNumber?: string },
   ) {
-    return this.authService.register(userId, body);
+    return this.authService.register(body);
+  }
+
+  @Post('login')
+  @ApiOperation({ summary: 'Login with email and password' })
+  async login(@Body() body: { email: string; password: string }) {
+    return this.authService.login(body.email, body.password);
   }
 
   @Get('profile')
