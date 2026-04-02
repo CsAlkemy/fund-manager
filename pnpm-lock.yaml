@@ -50,6 +50,9 @@ importers:
       aws-lambda:
         specifier: ^1.0.7
         version: 1.0.7
+      express:
+        specifier: ^5.2.1
+        version: 5.2.1
       multer:
         specifier: ^1.4.5-lts.2
         version: 1.4.5-lts.2
