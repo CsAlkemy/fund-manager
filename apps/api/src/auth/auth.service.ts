@@ -16,17 +16,8 @@ export class AuthService {
     }
   }
 
-  private isStaging(): boolean {
-    return process.env.NODE_ENV !== 'production';
-  }
-
-  private get defaultOtp(): string {
-    return '000000';
-  }
-
   async requestOtp(email: string) {
-    // In staging, use default OTP 000000
-    const code = this.isStaging() ? this.defaultOtp : Math.floor(100000 + Math.random() * 900000).toString();
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
 
     // Find existing user for this email
@@ -41,8 +32,8 @@ export class AuthService {
       },
     });
 
-    // Send OTP via Resend
-    if (this.resend && !this.isStaging()) {
+    // Send OTP via Resend if configured, otherwise log to console
+    if (this.resend) {
       await this.resend.emails.send({
         from: process.env.EMAIL_FROM || 'Fund Manager <noreply@fund-manager.app>',
         to: email,
@@ -55,8 +46,7 @@ export class AuthService {
         `,
       });
     } else {
-      // Dev/staging mode: log to console
-      console.log(`[STG] OTP for ${email}: ${code}`);
+      console.log(`[DEV] OTP for ${email}: ${code}`);
     }
 
     return { message: 'OTP sent' };

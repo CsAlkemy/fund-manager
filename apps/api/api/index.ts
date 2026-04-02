@@ -6,10 +6,24 @@ import { AppModule } from '../src/app.module';
 
 const server = express();
 
+// Handle CORS at Express level before NestJS processes the request
+const allowedOrigin = process.env.FRONTEND_URL || '*';
+server.use((req, res, next) => {
+  res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+  res.setHeader('Access-Control-Allow-Methods', 'GET,POST,PUT,PATCH,DELETE,OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type,Authorization');
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    res.status(204).end();
+    return;
+  }
+  next();
+});
+
 const bootstrapPromise = (async () => {
   const app = await NestFactory.create(AppModule, new ExpressAdapter(server));
   app.enableCors({
-    origin: process.env.FRONTEND_URL || '*',
+    origin: allowedOrigin,
     credentials: true,
   });
 
