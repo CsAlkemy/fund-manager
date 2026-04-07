@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ComponentType, useState, useRef, useEffect } from 'react';
 import { useTranslation } from '@/i18n/useTranslation';
+import { Logo } from '@/components/ui/Logo';
 
 interface SidebarProps {
   user: User | null;
@@ -108,15 +109,18 @@ export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, col
         {/* Logo */}
         <div className={cn('py-5 flex items-center', collapsed ? 'px-4 justify-center' : 'px-6')}>
           {collapsed ? (
-            <span className="text-brand-accent text-xl font-bold">✦</span>
+            <Logo size={28} withBg />
           ) : (
-            <div>
-              <h1 className="text-xl font-bold text-white">
-                <span className="text-brand-accent">✦</span> {t('common.appTitle')}
-              </h1>
-              <span className={`text-[10px] uppercase tracking-wider font-semibold ${roleColor}`}>
-                {roleLabel}
-              </span>
+            <div className="flex items-center gap-2.5">
+              <Logo size={32} withBg />
+              <div>
+                <h1 className="text-lg font-bold text-white leading-tight">
+                  {t('common.appTitle')}
+                </h1>
+                <span className={`text-[10px] uppercase tracking-wider font-semibold ${roleColor}`}>
+                  {roleLabel}
+                </span>
+              </div>
             </div>
           )}
         </div>

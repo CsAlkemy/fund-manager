@@ -28,6 +28,15 @@ export default function App({ Component, pageProps }: AppProps) {
     };
   }, [router]);
 
+  // Dismiss splash screen after hydration
+  useEffect(() => {
+    const splash = document.getElementById('splash-screen');
+    if (splash) {
+      splash.classList.add('fade-out');
+      setTimeout(() => splash.remove(), 500);
+    }
+  }, []);
+
   return (
     <TranslationProvider>
       <AuthProvider>

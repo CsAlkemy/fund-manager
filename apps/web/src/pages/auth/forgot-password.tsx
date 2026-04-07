@@ -12,6 +12,7 @@ import { useRouter } from 'next/router';
 import { useTranslation } from '@/i18n/useTranslation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { Logo } from '@/components/ui/Logo';
 
 export default function ForgotPasswordPage() {
   const router = useRouter();
@@ -53,8 +54,9 @@ export default function ForgotPasswordPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <Logo size={48} className="mx-auto mb-2" />
           <h1 className="text-3xl font-bold text-gray-900">
-            <span className="text-brand-primary">✦</span> {t('common.appTitle')}
+            {t('common.appTitle')}
           </h1>
           <p className="text-sm text-gray-500 mt-2">{t('common.tagline')}</p>
         </div>
@@ -110,7 +112,7 @@ export default function ForgotPasswordPage() {
                     inputMode="numeric"
                     maxLength={6}
                     {...resetForm.register('code')}
-                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary tracking-widest text-center text-lg"
+                    className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-lg outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary tracking-widest text-center"
                     placeholder="000000"
                   />
                   {resetForm.formState.errors.code && (

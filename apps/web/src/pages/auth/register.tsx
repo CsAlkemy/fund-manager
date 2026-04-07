@@ -7,6 +7,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
 import toast from 'react-hot-toast';
 import Link from 'next/link';
+import { Logo } from '@/components/ui/Logo';
 
 export default function RegisterPage() {
   const router = useRouter();
@@ -32,8 +33,9 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
+          <Logo size={48} className="mx-auto mb-2" />
           <h1 className="text-3xl font-bold text-gray-900">
-            <span className="text-brand-primary">✦</span> {t('common.appTitle')}
+            {t('common.appTitle')}
           </h1>
           <p className="text-sm text-gray-500 mt-2">{t('common.tagline')}</p>
         </div>

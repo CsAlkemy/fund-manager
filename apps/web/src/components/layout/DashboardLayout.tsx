@@ -3,6 +3,7 @@ import { Sidebar } from './Sidebar';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Menu } from 'lucide-react';
+import { Logo } from '@/components/ui/Logo';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -38,9 +39,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <button onClick={() => setSidebarOpen(true)} className="text-white p-2 -ml-2" aria-label="Open menu">
           <Menu className="h-6 w-6" />
         </button>
-        <h1 className="ml-3 text-lg font-bold text-white">
-          <span className="text-brand-accent">✦</span> {t('common.appTitle')}
-        </h1>
+        <div className="ml-3 flex items-center gap-2">
+          <Logo size={24} withBg />
+          <h1 className="text-lg font-bold text-white">{t('common.appTitle')}</h1>
+        </div>
       </header>
 
       <Sidebar
