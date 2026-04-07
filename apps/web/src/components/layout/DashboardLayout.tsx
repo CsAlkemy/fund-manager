@@ -51,9 +51,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
       <main className={`transition-all duration-200 ${!loading && collapsed ? 'md:ml-[68px]' : !loading ? 'md:ml-60' : ''}`}>
         <div className="p-4 pt-20 pb-32 md:p-8 md:pt-8 md:pb-8">
-          {loading ? <LoadingSpinner /> : children}
+          {loading ? <LoadingOverlay /> : children}
         </div>
       </main>
+    </div>
+  );
+}
+
+function LoadingOverlay() {
+  return (
+    <div className="fixed inset-0 z-30 flex items-center justify-center bg-white/70 backdrop-blur-md">
+      <LoadingSpinner size={100} />
     </div>
   );
 }

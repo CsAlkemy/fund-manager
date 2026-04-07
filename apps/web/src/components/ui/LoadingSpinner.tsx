@@ -1,4 +1,4 @@
-export function LoadingSpinner() {
+export function LoadingSpinner({ size = 64 }: { size?: number }) {
   return (
     <div className="flex items-center justify-center py-12">
       <style>{`
@@ -20,14 +20,14 @@ export function LoadingSpinner() {
         .loader-blob1 { animation: loader-blob1 2.4s ease-in-out infinite; transform-origin: 40% 45%; }
         .loader-blob2 { animation: loader-blob2 2.4s ease-in-out infinite; transform-origin: 60% 55%; }
         .loader-glow {
-          position: absolute; inset: -16px;
+          position: absolute; inset: -20px;
           background: radial-gradient(circle, rgba(74,124,89,0.25) 0%, transparent 70%);
           animation: loader-pulse 1.6s ease-in-out infinite;
         }
       `}</style>
-      <div className="relative" style={{ width: 64, height: 64 }}>
+      <div className="relative" style={{ width: size, height: size }}>
         <div className="loader-glow" />
-        <svg width="64" height="64" viewBox="0 0 100 100" fill="none" className="loader-wrap relative">
+        <svg width={size} height={size} viewBox="0 0 100 100" fill="none" className="loader-wrap relative">
           <path
             className="loader-blob1"
             d="M52 18C63 16 74 22 78 34C82 46 76 58 66 66C56 74 40 76 30 68C20 60 16 44 22 32C28 20 41 20 52 18Z"
