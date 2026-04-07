@@ -50,6 +50,14 @@ enum PaymentMethod {
   BANK
 }
 
+enum ExpenseCategory {
+  SUPPLIES
+  EVENT
+  MAINTENANCE
+  TRANSPORT
+  OTHER
+}
+
 enum InvestmentStatus {
   ACTIVE
   SOLD
@@ -80,6 +88,7 @@ model User {
   memberships   Membership[]
   contributions Contribution[]
   fines         Fine[]
+  expenses      Expense[]        @relation("ExpenseRecorder")
   otpCodes      OtpCode[]
   auditLogs     AuditLog[]       @relation("AuditActor")
 
@@ -120,6 +129,7 @@ model Group {
   memberships        Membership[]
   contributions      Contribution[]
   fines              Fine[]
+  expenses           Expense[]
   investments        Investment[]
   auditLogs          AuditLog[]
 
@@ -192,6 +202,27 @@ model Fine {
 
   @@unique([userId, groupId, month, year])
   @@map("fines")
+}
+
+// ─── EXPENSE ─────────────────────────────────────────────
+
+model Expense {
+  id          String           @id @default(cuid())
+  groupId     String
+  description String
+  amount      Int
+  category    ExpenseCategory?
+  date        DateTime         @default(now())
+  receiptUrl  String
+  recordedBy  String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  group       Group            @relation(fields: [groupId], references: [id])
+  recorder    User             @relation("ExpenseRecorder", fields: [recordedBy], references: [id])
+
+  @@index([groupId, date])
+  @@map("expenses")
 }
 
 // ─── INVESTMENT (Phase 2) ────────────────────────────────

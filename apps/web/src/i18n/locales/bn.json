@@ -435,5 +435,42 @@
   "table.user": "ব্যবহারকারী",
 
   "audit.on": "{{entity}}-এ",
-  "audit.unknown": "অজানা"
+  "audit.unknown": "অজানা",
+
+  "nav.expenses": "খরচ",
+
+  "expenses.title": "খরচ",
+  "expenses.subtitle": "গ্রুপ তহবিলের ব্যয়ের ইতিহাস",
+  "expenses.addExpense": "+ খরচ যোগ করুন",
+  "expenses.noExpenses": "এখনো কোনো খরচ নেই",
+  "expenses.totalSpent": "মোট ব্যয়: ৳{{amount}}",
+  "expenses.description": "বিবরণ",
+  "expenses.descriptionPlaceholder": "যেমন: অনুষ্ঠানের জন্য সামগ্রী কেনা",
+  "expenses.descriptionRequired": "বিবরণ আবশ্যক",
+  "expenses.amount": "পরিমাণ (৳)",
+  "expenses.amountRequired": "পরিমাণ ০ এর বেশি হতে হবে",
+  "expenses.category": "বিভাগ (ঐচ্ছিক)",
+  "expenses.categoryNone": "কোনো বিভাগ নেই",
+  "expenses.categorySUPPLIES": "সামগ্রী",
+  "expenses.categoryEVENT": "অনুষ্ঠান",
+  "expenses.categoryMAINTENANCE": "রক্ষণাবেক্ষণ",
+  "expenses.categoryTRANSPORT": "পরিবহন",
+  "expenses.categoryOTHER": "অন্যান্য",
+  "expenses.date": "তারিখ",
+  "expenses.receipt": "রসিদ",
+  "expenses.submitting": "রেকর্ড হচ্ছে...",
+  "expenses.submitExpense": "খরচ রেকর্ড করুন",
+  "expenses.submitted": "খরচ রেকর্ড হয়েছে!",
+  "expenses.deleted": "খরচ মুছে ফেলা হয়েছে",
+  "expenses.deleteConfirm": "এই খরচ মুছে ফেলবেন? এটি পূর্বাবস্থায় ফেরানো যাবে না।",
+  "expenses.recordedBy": "{{name}} দ্বারা রেকর্ডকৃত",
+
+  "dashboard.mgr.totalExpenses": "মোট খরচ",
+  "dashboard.mgr.manageExpenses": "খরচ দেখুন →",
+  "dashboard.groupExpenses": "গ্রুপ খরচ",
+
+  "table.date": "তারিখ",
+  "table.description": "বিবরণ",
+  "table.category": "বিভাগ",
+  "table.receipt": "রসিদ"
 }

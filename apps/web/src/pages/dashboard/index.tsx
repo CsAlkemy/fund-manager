@@ -412,6 +412,10 @@ function ManagerDashboard() {
           <p className="text-sm font-semibold text-blue-700">{t('dashboard.mgr.totalContributions', { count: contributions.length })}</p>
           <p className="text-xs text-blue-500 mt-0.5">{t('dashboard.mgr.viewAll')}</p>
         </a>
+        <a href="/expenses" className="rounded-xl bg-green-50 border border-green-100 p-4 hover:border-green-200 transition-colors">
+          <p className="text-sm font-semibold text-green-700">{t('dashboard.mgr.totalExpenses')}: ৳{(summary?.totalExpenses || 0).toLocaleString()}</p>
+          <p className="text-xs text-green-500 mt-0.5">{t('dashboard.mgr.manageExpenses')}</p>
+        </a>
       </div>
     </>
   );

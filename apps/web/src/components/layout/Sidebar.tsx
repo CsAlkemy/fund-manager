@@ -4,7 +4,7 @@ import { cn } from '@/lib/cn';
 import { User } from '@/hooks/useAuth';
 import {
   LayoutDashboard, Shield, Users, FileText, Settings,
-  Globe, CheckCircle, AlertTriangle, Wallet, UserCircle,
+  Globe, CheckCircle, AlertTriangle, Wallet, UserCircle, Receipt,
   X, ChevronsLeft, ChevronsRight, LogOut, ChevronUp, Languages,
 } from 'lucide-react';
 import { ComponentType, useState, useRef, useEffect } from 'react';
@@ -29,6 +29,7 @@ const iconMap: Record<string, ComponentType<{ className?: string }>> = {
   check: CheckCircle,
   'alert-circle': AlertTriangle,
   wallet: Wallet,
+  receipt: Receipt,
   user: UserCircle,
 };
 
@@ -141,6 +142,7 @@ export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, col
               <NavItem href="/members" icon="users" label={t('nav.members')} isActive={router.pathname.startsWith('/members')} collapsed={collapsed} onClick={closeMobile} />
               <NavItem href="/contributions" icon="wallet" label={t('nav.contributions')} isActive={router.pathname.startsWith('/contributions')} collapsed={collapsed} onClick={closeMobile} />
               <NavItem href="/fines" icon="alert-circle" label={t('nav.fines')} isActive={router.pathname.startsWith('/fines')} collapsed={collapsed} onClick={closeMobile} />
+              <NavItem href="/expenses" icon="receipt" label={t('nav.expenses')} isActive={router.pathname.startsWith('/expenses')} collapsed={collapsed} onClick={closeMobile} />
             </>
           )}
 
@@ -149,6 +151,7 @@ export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, col
               <SectionLabel label={t('nav.menu')} collapsed={collapsed} />
               <NavItem href="/dashboard" icon="grid" label={t('nav.dashboard')} isActive={router.pathname === '/dashboard'} collapsed={collapsed} onClick={closeMobile} />
               <NavItem href="/contributions" icon="wallet" label={t('nav.myContributions')} isActive={router.pathname.startsWith('/contributions')} collapsed={collapsed} onClick={closeMobile} />
+              <NavItem href="/expenses" icon="receipt" label={t('nav.expenses')} isActive={router.pathname.startsWith('/expenses')} collapsed={collapsed} onClick={closeMobile} />
             </>
           )}
         </nav>

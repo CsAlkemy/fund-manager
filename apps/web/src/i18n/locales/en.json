@@ -435,5 +435,42 @@
   "table.user": "User",
 
   "audit.on": "on {{entity}}",
-  "audit.unknown": "Unknown"
+  "audit.unknown": "Unknown",
+
+  "nav.expenses": "Expenses",
+
+  "expenses.title": "Expenses",
+  "expenses.subtitle": "Group fund expenditure history",
+  "expenses.addExpense": "+ Add Expense",
+  "expenses.noExpenses": "No expenses recorded yet",
+  "expenses.totalSpent": "Total Spent: ৳{{amount}}",
+  "expenses.description": "Description",
+  "expenses.descriptionPlaceholder": "e.g. Bought supplies for event",
+  "expenses.descriptionRequired": "Description is required",
+  "expenses.amount": "Amount (৳)",
+  "expenses.amountRequired": "Amount must be greater than 0",
+  "expenses.category": "Category (optional)",
+  "expenses.categoryNone": "No category",
+  "expenses.categorySUPPLIES": "Supplies",
+  "expenses.categoryEVENT": "Event",
+  "expenses.categoryMAINTENANCE": "Maintenance",
+  "expenses.categoryTRANSPORT": "Transport",
+  "expenses.categoryOTHER": "Other",
+  "expenses.date": "Date",
+  "expenses.receipt": "Receipt",
+  "expenses.submitting": "Recording...",
+  "expenses.submitExpense": "Record Expense",
+  "expenses.submitted": "Expense recorded!",
+  "expenses.deleted": "Expense deleted",
+  "expenses.deleteConfirm": "Delete this expense? This cannot be undone.",
+  "expenses.recordedBy": "Recorded by {{name}}",
+
+  "dashboard.mgr.totalExpenses": "Total Expenses",
+  "dashboard.mgr.manageExpenses": "View expenses →",
+  "dashboard.groupExpenses": "Group Expenses",
+
+  "table.date": "Date",
+  "table.description": "Description",
+  "table.category": "Category",
+  "table.receipt": "Receipt"
 }
