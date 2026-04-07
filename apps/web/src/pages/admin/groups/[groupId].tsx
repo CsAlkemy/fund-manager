@@ -10,6 +10,7 @@ import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Avatar } from '@/components/ui/Avatar';
 import {
   ArrowLeft, Pencil, Pause, Play, ArrowRightLeft, Users,
   Wallet, AlertTriangle, Calendar, Mail, Shield,
@@ -101,9 +102,7 @@ export default function AdminGroupDetailPage() {
         </Link>
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="h-12 w-12 rounded-xl bg-blue-50 flex items-center justify-center text-blue-600 text-lg font-bold">
-              {group.name.charAt(0)}
-            </div>
+            <Avatar src={group.logoUrl} name={group.name} size="lg" shape="rounded" className="bg-blue-600" />
             <div>
               <div className="flex items-center gap-2">
                 <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
@@ -171,7 +170,7 @@ export default function AdminGroupDetailPage() {
             </div>
             {mgr ? (
               <div className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 border border-purple-100">
-                <div className="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 text-sm font-bold">{mgr.user.name.charAt(0)}</div>
+                <Avatar src={mgr.user.avatarUrl} name={mgr.user.name} size="md" className="bg-purple-600" />
                 <div>
                   <p className="text-sm font-medium text-gray-900">{mgr.user.name}</p>
                   <p className="text-xs text-gray-500">{mgr.user.email}</p>
@@ -204,7 +203,7 @@ export default function AdminGroupDetailPage() {
               <div className="divide-y divide-gray-50">
                 {members.map((m: any) => (
                   <div key={m.user.id} className="flex items-center gap-3 py-3">
-                    <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-sm font-bold shrink-0">{m.user.name.charAt(0)}</div>
+                    <Avatar src={m.user.avatarUrl} name={m.user.name} size="md" />
                     <div className="min-w-0 flex-1">
                       <p className="text-sm font-medium text-gray-900">{m.user.name}</p>
                       <p className="text-xs text-gray-400">{m.user.email}</p>
@@ -232,9 +231,7 @@ export default function AdminGroupDetailPage() {
                   className={cn('w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-colors',
                     isCurrent ? 'bg-purple-50 border border-purple-200 cursor-default' : 'hover:bg-gray-50 border border-transparent'
                   )}>
-                  <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
-                    isCurrent ? 'bg-purple-200 text-purple-700' : 'bg-gray-100 text-gray-600'
-                  )}>{m.user.name.charAt(0)}</div>
+                  <Avatar src={m.user.avatarUrl} name={m.user.name} size="md" />
                   <div className="min-w-0">
                     <p className="text-sm text-gray-900 truncate">{m.user.name}</p>
                     <p className="text-xs text-gray-400 truncate">{m.user.email}</p>

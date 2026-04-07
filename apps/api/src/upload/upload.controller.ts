@@ -49,4 +49,41 @@ export class UploadController {
 
     return { url: `/uploads/${file.filename}`, filename: file.filename, size: file.size };
   }
+
+  @Post('image')
+  @ApiOperation({ summary: 'Upload a general image — avatar, logo, cover (max 2MB)' })
+  @ApiConsumes('multipart/form-data')
+  @UseInterceptors(
+    FileInterceptor('file', {
+      storage: isVercel
+        ? undefined
+        : diskStorage({
+            destination: './uploads',
+            filename: (_req, file, cb) => {
+              const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+              cb(null, `image-${uniqueSuffix}${extname(file.originalname)}`);
+            },
+          }),
+      limits: { fileSize: 2 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+          cb(new Error('Only image files are allowed'), false);
+        }
+        cb(null, true);
+      },
+    }),
+  )
+  async uploadImage(@UploadedFile() file: Express.Multer.File) {
+    if (isVercel) {
+      const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+      const filename = `image-${uniqueSuffix}${extname(file.originalname)}`;
+      const blob = await put(`images/${filename}`, file.buffer, {
+        access: 'public',
+        contentType: file.mimetype,
+      });
+      return { url: blob.url, filename, size: file.size };
+    }
+
+    return { url: `/uploads/${file.filename}`, filename: file.filename, size: file.size };
+  }
 }

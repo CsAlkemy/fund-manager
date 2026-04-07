@@ -10,6 +10,7 @@ import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
 import { UserPlus, UserMinus, Mail, Users as UsersIcon } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
 
 const PAGE_SIZE = 10;
 
@@ -93,7 +94,7 @@ export default function MembersPage() {
       {/* Manager Card */}
       {manager && (
         <div className="rounded-xl bg-purple-50 border border-purple-100 p-4 mb-4 flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-purple-200 flex items-center justify-center text-purple-700 text-sm font-bold">{manager.user.name.charAt(0)}</div>
+          <Avatar src={manager.user.avatarUrl} name={manager.user.name} size="md" className="bg-purple-600" />
           <div>
             <div className="flex items-center gap-2">
               <p className="text-sm font-medium text-gray-900">{manager.user.name}</p>
@@ -142,7 +143,7 @@ export default function MembersPage() {
                     <tr key={m.user.id} className="hover:bg-gray-50/50">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2.5">
-                          <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-xs font-bold">{m.user.name.charAt(0)}</div>
+                          <Avatar src={m.user.avatarUrl} name={m.user.name} size="sm" />
                           <span className="font-medium text-gray-900">{m.user.name}</span>
                         </div>
                       </td>
@@ -165,7 +166,7 @@ export default function MembersPage() {
               {paginate(filtered, page, PAGE_SIZE).map((m: any) => (
                 <div key={m.user.id} className="p-4 flex items-center justify-between">
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="h-9 w-9 rounded-full bg-gray-100 flex items-center justify-center text-gray-600 text-sm font-bold shrink-0">{m.user.name.charAt(0)}</div>
+                    <Avatar src={m.user.avatarUrl} name={m.user.name} size="md" />
                     <div className="min-w-0">
                       <p className="text-sm font-medium text-gray-900 truncate">{m.user.name}</p>
                       <p className="text-xs text-gray-400 truncate">{m.user.email}</p>

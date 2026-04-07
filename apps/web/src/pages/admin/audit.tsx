@@ -7,6 +7,7 @@ import { useRouter } from 'next/router';
 import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Avatar } from '@/components/ui/Avatar';
 
 const PAGE_SIZE = 10;
 
@@ -142,9 +143,7 @@ export default function AdminAuditPage() {
                       </td>
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="h-6 w-6 rounded-full bg-gray-100 flex items-center justify-center text-[10px] font-bold text-gray-500 shrink-0">
-                            {log.actor?.name?.charAt(0) || '?'}
-                          </div>
+                          <Avatar src={log.actor?.avatarUrl} name={log.actor?.name || '?'} size="xs" />
                           <span className="text-gray-900">{log.actor?.name || t('audit.unknown')}</span>
                         </div>
                       </td>
@@ -175,9 +174,7 @@ export default function AdminAuditPage() {
                     <span className="text-[10px] text-gray-400">{new Date(log.createdAt).toLocaleString()}</span>
                   </div>
                   <div className="flex items-center gap-2 mb-1">
-                    <div className="h-5 w-5 rounded-full bg-gray-100 flex items-center justify-center text-[9px] font-bold text-gray-500">
-                      {log.actor?.name?.charAt(0) || '?'}
-                    </div>
+                    <Avatar src={log.actor?.avatarUrl} name={log.actor?.name || '?'} size="xs" />
                     <span className="text-sm font-medium text-gray-900">{log.actor?.name || t('audit.unknown')}</span>
                     <span className="text-xs text-gray-400">{t('audit.on', { entity: log.entity })}</span>
                   </div>

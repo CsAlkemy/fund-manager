@@ -30,7 +30,7 @@ export class ExpenseService {
         receiptUrl: data.receiptUrl,
         recordedBy: actorId,
       },
-      include: { recorder: { select: { id: true, name: true, email: true } } },
+      include: { recorder: { select: { id: true, name: true, email: true, avatarUrl: true } } },
     });
 
     await this.auditService.log(actorId, groupId, 'CREATE', 'Expense', expense.id, {
@@ -45,7 +45,7 @@ export class ExpenseService {
   async getGroupExpenses(groupId: string) {
     return this.prisma.expense.findMany({
       where: { groupId },
-      include: { recorder: { select: { id: true, name: true, email: true } } },
+      include: { recorder: { select: { id: true, name: true, email: true, avatarUrl: true } } },
       orderBy: { date: 'desc' },
     });
   }

@@ -69,15 +69,25 @@ export class AuthService {
         name: true,
         phone: true,
         bkashNumber: true,
+        avatarUrl: true,
         systemRole: true,
         memberships: {
           where: { status: 'ACTIVE' },
-          include: { group: { select: { id: true, name: true } } },
+          include: { group: { select: { id: true, name: true, logoUrl: true } } },
         },
       },
     });
 
     if (!user) throw new BadRequestException('User not found');
+    return user;
+  }
+
+  async updateProfile(userId: string, data: { name?: string; phone?: string; bkashNumber?: string; avatarUrl?: string }) {
+    const user = await this.prisma.user.update({
+      where: { id: userId },
+      data,
+      select: { id: true, email: true, name: true, phone: true, bkashNumber: true, avatarUrl: true, systemRole: true },
+    });
     return user;
   }
 

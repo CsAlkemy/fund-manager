@@ -10,6 +10,7 @@ import {
 import { ComponentType, useState, useRef, useEffect } from 'react';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Logo } from '@/components/ui/Logo';
+import { Avatar } from '@/components/ui/Avatar';
 
 interface SidebarProps {
   user: User | null;
@@ -223,9 +224,7 @@ export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, col
                 collapsed ? 'justify-center' : 'gap-3'
               )}
             >
-              <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-white text-xs font-medium shrink-0', avatarColor)}>
-                {user.name.charAt(0).toUpperCase()}
-              </div>
+              <Avatar src={user.avatarUrl} name={user.name} size="sm" className={user.avatarUrl ? '' : avatarColor} />
               {!collapsed && (
                 <>
                   <div className="min-w-0 flex-1 text-left">

@@ -17,7 +17,7 @@ export class GroupService {
       include: {
         memberships: {
           where: { status: 'ACTIVE' },
-          include: { user: { select: { id: true, name: true, email: true } } },
+          include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
         },
         _count: { select: { contributions: true } },
       },
@@ -30,7 +30,7 @@ export class GroupService {
       include: {
         memberships: {
           where: { status: 'ACTIVE' },
-          include: { user: { select: { id: true, name: true, email: true, bkashNumber: true } } },
+          include: { user: { select: { id: true, name: true, email: true, phone: true, bkashNumber: true, avatarUrl: true } } },
         },
       },
     });
@@ -104,6 +104,12 @@ export class GroupService {
 
     await this.auditService.log(actorId, groupId, 'REMOVE', 'Membership', memberId);
     return { message: 'Member removed' };
+  }
+
+  async updateGroup(actorId: string, groupId: string, data: { name?: string; description?: string; monthlyAmount?: number; fineAmount?: number; fineDeadlineDay?: number; logoUrl?: string; coverUrl?: string }) {
+    const group = await this.prisma.group.update({ where: { id: groupId }, data });
+    await this.auditService.log(actorId, groupId, 'UPDATE', 'Group', groupId, data);
+    return group;
   }
 
   async getGroupSummary(groupId: string) {

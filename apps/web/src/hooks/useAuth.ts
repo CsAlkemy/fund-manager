@@ -3,7 +3,7 @@ import { useRouter } from 'next/router';
 
 export interface Membership {
   role: string;
-  group: { id: string; name: string };
+  group: { id: string; name: string; logoUrl?: string | null };
 }
 
 export interface User {
@@ -12,6 +12,7 @@ export interface User {
   name: string;
   phone: string | null;
   bkashNumber: string | null;
+  avatarUrl: string | null;
   systemRole: 'SUPER_ADMIN' | 'USER';
   memberships: Membership[];
 }

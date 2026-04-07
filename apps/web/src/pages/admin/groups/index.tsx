@@ -11,6 +11,7 @@ import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Plus, Pencil, Pause, Play, ChevronRight, Mail } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
 
 const PAGE_SIZE = 10;
 
@@ -201,7 +202,7 @@ export default function AdminGroupsPage() {
                       <tr key={g.id} className="hover:bg-gray-50/50 transition-colors cursor-pointer" onClick={() => router.push(`/admin/groups/${g.id}`)}>
                         <td className="px-5 py-3">
                           <div className="flex items-center gap-3">
-                            <div className="h-8 w-8 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-xs font-bold shrink-0">{g.name.charAt(0)}</div>
+                            <Avatar src={g.logoUrl} name={g.name} size="sm" shape="rounded" className="bg-blue-600" />
                             <span className="font-medium text-gray-900">{g.name}</span>
                           </div>
                         </td>
@@ -239,7 +240,7 @@ export default function AdminGroupsPage() {
                 return (
                   <Link key={g.id} href={`/admin/groups/${g.id}`} className="flex items-center justify-between p-4 hover:bg-gray-50/50">
                     <div className="flex items-center gap-3 min-w-0">
-                      <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold shrink-0">{g.name.charAt(0)}</div>
+                      <Avatar src={g.logoUrl} name={g.name} size="md" shape="rounded" className="bg-blue-600" />
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
                           <p className="text-sm font-medium text-gray-900 truncate">{g.name}</p>
@@ -319,7 +320,7 @@ export default function AdminGroupsPage() {
             {/* Preview card */}
             {cName && (
               <div className="rounded-lg bg-gray-50 p-3 flex items-center gap-3">
-                <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold shrink-0">{cName.charAt(0).toUpperCase()}</div>
+                <Avatar name={cName} size="md" shape="rounded" className="bg-blue-600" />
                 <div className="text-xs">
                   <p className="font-medium text-gray-900">{cName}</p>
                   <p className="text-gray-400">৳{cMonthly}/mo · Fine: ৳{cFine} · Due: {cDeadline}th</p>
@@ -338,7 +339,7 @@ export default function AdminGroupsPage() {
           <div className="space-y-4">
             {/* Summary of step 1 */}
             <div className="rounded-lg bg-gray-50 p-3 flex items-center gap-3">
-              <div className="h-9 w-9 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold shrink-0">{cName.charAt(0).toUpperCase()}</div>
+              <Avatar name={cName} size="md" shape="rounded" className="bg-blue-600" />
               <div className="text-xs min-w-0">
                 <p className="font-medium text-gray-900 truncate">{cName}</p>
                 <p className="text-gray-400">৳{cMonthly}/mo · Fine: ৳{cFine} · Due: {cDeadline}th</p>
@@ -385,7 +386,7 @@ export default function AdminGroupsPage() {
                 <div className="space-y-1.5 max-h-52 overflow-y-auto border border-gray-200 rounded-lg p-2">
                   {users.map((u: any) => (
                     <button key={u.id} type="button" onClick={() => setSelectedMgrId(u.id)} className={cn('w-full flex items-center gap-2.5 px-3 py-2.5 rounded-lg text-left transition-colors', selectedMgrId === u.id ? 'bg-brand-primary/10 border border-brand-primary/30' : 'hover:bg-gray-50 border border-transparent')}>
-                      <div className="h-8 w-8 rounded-full bg-purple-100 flex items-center justify-center text-purple-600 text-xs font-bold shrink-0">{u.name.charAt(0)}</div>
+                      <Avatar src={u.avatarUrl} name={u.name} size="sm" className="bg-purple-600" />
                       <div className="min-w-0">
                         <p className="text-sm font-medium text-gray-900 truncate">{u.name}</p>
                         <p className="text-xs text-gray-400 truncate">{u.email}</p>

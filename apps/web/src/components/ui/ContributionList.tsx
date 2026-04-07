@@ -3,6 +3,7 @@ import { assetUrl } from '@/lib/api';
 import { useTranslation } from '@/i18n/useTranslation';
 import { useState } from 'react';
 import { Modal } from './Modal';
+import { Avatar } from './Avatar';
 import { ExternalLink } from 'lucide-react';
 
 interface ContributionListProps {
@@ -47,7 +48,7 @@ export function ContributionList({ contributions, showMember = false }: Contribu
           <tbody>
             {contributions.map((c: any) => (
               <tr key={c.id} className="border-b border-gray-50">
-                {showMember && <td className="py-3 font-medium text-gray-900">{c.user?.name || '—'}</td>}
+                {showMember && <td className="py-3"><div className="flex items-center gap-2"><Avatar src={c.user?.avatarUrl} name={c.user?.name || '?'} size="xs" /><span className="font-medium text-gray-900">{c.user?.name || '—'}</span></div></td>}
                 <td className="py-3 text-gray-900">
                   {new Date(0, c.month - 1).toLocaleString(locale, { month: 'short' })} {c.year}
                 </td>
@@ -81,7 +82,7 @@ export function ContributionList({ contributions, showMember = false }: Contribu
           <div key={c.id} className="rounded-lg border border-gray-100 p-4">
             <div className="flex items-center justify-between mb-2">
               <div>
-                {showMember && <p className="text-sm font-medium text-gray-900">{c.user?.name}</p>}
+                {showMember && <div className="flex items-center gap-2 mb-0.5"><Avatar src={c.user?.avatarUrl} name={c.user?.name || '?'} size="xs" /><span className="text-sm font-medium text-gray-900">{c.user?.name}</span></div>}
                 <p className="text-sm font-semibold text-gray-900">
                   {new Date(0, c.month - 1).toLocaleString(locale, { month: 'long' })} {c.year}
                 </p>

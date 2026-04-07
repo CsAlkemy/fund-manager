@@ -9,6 +9,7 @@ import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Avatar } from '@/components/ui/Avatar';
 
 export default function GroupDetailPage() {
   const { t, locale } = useTranslation();
@@ -150,9 +151,12 @@ export default function GroupDetailPage() {
   return (
     <DashboardLayout>
       <div className="mb-6 flex items-center justify-between">
-        <div>
+        <div className="flex items-center gap-3">
+          <Avatar src={group.logoUrl} name={group.name} size="lg" shape="rounded" />
+          <div>
           <h1 className="text-2xl font-bold text-gray-900">{group.name}</h1>
           <p className="text-sm text-gray-500">{group.description || t('groups.fundGroupDefault')} · {t('groups.roleLabel', { role: role || t('groups.adminRole') })}</p>
+          </div>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={() => setShowSubmitPayment(true)} className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90">
@@ -198,7 +202,7 @@ export default function GroupDetailPage() {
             {pending.map((c) => (
               <div key={c.id} className="flex items-center justify-between border-b border-gray-50 pb-3">
                 <div className="flex items-center gap-3">
-                  <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-medium">{c.user.name.charAt(0)}</div>
+                  <Avatar src={c.user.avatarUrl} name={c.user.name} size="sm" />
                   <div>
                     <p className="text-sm font-medium text-gray-900">{c.user.name}</p>
                     <p className="text-xs text-gray-500">{c.paymentMethod} · TxID: {c.transactionId} · ৳{c.amount}</p>

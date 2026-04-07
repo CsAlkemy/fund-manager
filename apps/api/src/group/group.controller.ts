@@ -1,4 +1,5 @@
 import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards } from '@nestjs/common';
+
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { GroupService } from './group.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -31,6 +32,17 @@ export class GroupController {
   @ApiOperation({ summary: 'Get group financial summary' })
   async getSummary(@Param('groupId') groupId: string) {
     return this.groupService.getGroupSummary(groupId);
+  }
+
+  @Patch(':groupId')
+  @GroupRoles('MANAGER')
+  @ApiOperation({ summary: 'Update group settings (Manager only)' })
+  async updateGroup(
+    @CurrentUser('sub') actorId: string,
+    @Param('groupId') groupId: string,
+    @Body() body: { name?: string; description?: string; monthlyAmount?: number; fineAmount?: number; fineDeadlineDay?: number; logoUrl?: string; coverUrl?: string },
+  ) {
+    return this.groupService.updateGroup(actorId, groupId, body);
   }
 
   @Post('join')

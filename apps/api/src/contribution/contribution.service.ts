@@ -108,7 +108,7 @@ export class ContributionService {
   async getPendingForGroup(groupId: string) {
     return this.prisma.contribution.findMany({
       where: { groupId, status: 'PENDING' },
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
       orderBy: { submittedAt: 'asc' },
     });
   }
@@ -120,7 +120,7 @@ export class ContributionService {
 
     return this.prisma.contribution.findMany({
       where,
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
       orderBy: { submittedAt: 'desc' },
     });
   }
@@ -135,7 +135,7 @@ export class ContributionService {
   async getPaymentStatusGrid(groupId: string, month: number, year: number) {
     const members = await this.prisma.membership.findMany({
       where: { groupId, status: 'ACTIVE' },
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
     });
 
     const contributions = await this.prisma.contribution.findMany({

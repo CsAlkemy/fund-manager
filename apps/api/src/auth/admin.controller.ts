@@ -27,7 +27,7 @@ export class AdminController {
     const [users, total] = await Promise.all([
       this.prisma.user.findMany({
         include: {
-          memberships: { where: { status: 'ACTIVE' }, include: { group: { select: { id: true, name: true } } } },
+          memberships: { where: { status: 'ACTIVE' }, include: { group: { select: { id: true, name: true, logoUrl: true } } } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (p - 1) * l,
@@ -61,7 +61,7 @@ export class AdminController {
       include: {
         memberships: {
           where: { status: 'ACTIVE' },
-          include: { user: { select: { id: true, name: true, email: true } } },
+          include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
         },
         _count: { select: { contributions: true, fines: true } },
       },
@@ -164,8 +164,8 @@ export class AdminController {
     const [logs, total] = await Promise.all([
       this.prisma.auditLog.findMany({
         include: {
-          actor: { select: { id: true, name: true, email: true } },
-          group: { select: { id: true, name: true } },
+          actor: { select: { id: true, name: true, email: true, avatarUrl: true } },
+          group: { select: { id: true, name: true, logoUrl: true } },
         },
         orderBy: { createdAt: 'desc' },
         skip: (p - 1) * l,

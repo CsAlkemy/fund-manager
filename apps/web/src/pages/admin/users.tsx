@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
+import { Avatar } from '@/components/ui/Avatar';
 import { useRouter } from 'next/router';
 
 export default function AdminUsersPage() {
@@ -46,9 +47,7 @@ export default function AdminUsersPage() {
                   <tr key={u.id} className="border-b border-gray-50">
                     <td className="py-3">
                       <div className="flex items-center gap-2">
-                        <div className="h-7 w-7 rounded-full bg-brand-primary/10 flex items-center justify-center text-xs font-medium text-brand-primary">
-                          {u.name.charAt(0)}
-                        </div>
+                        <Avatar src={u.avatarUrl} name={u.name} size="sm" />
                         <span className="font-medium text-gray-900">{u.name}</span>
                       </div>
                     </td>

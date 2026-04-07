@@ -8,6 +8,7 @@ import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Shield, Users as UsersIcon } from 'lucide-react';
+import { Avatar } from '@/components/ui/Avatar';
 
 const PAGE_SIZE = 10;
 
@@ -141,11 +142,7 @@ export default function AdminManagersPage() {
                     <tr key={u.id} className="hover:bg-gray-50/50 transition-colors">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-3">
-                          <div className={cn('h-8 w-8 rounded-full flex items-center justify-center text-xs font-bold shrink-0',
-                            u.derivedRole === 'SUPER_ADMIN' ? 'bg-red-100 text-red-600' :
-                            u.derivedRole === 'MANAGER' ? 'bg-purple-100 text-purple-600' :
-                            'bg-gray-100 text-gray-600'
-                          )}>{u.name.charAt(0)}</div>
+                          <Avatar src={u.avatarUrl} name={u.name} size="sm" />
                           <span className="font-medium text-gray-900">{u.name}</span>
                         </div>
                       </td>
@@ -166,11 +163,7 @@ export default function AdminManagersPage() {
             <div className="md:hidden divide-y divide-gray-50">
               {paginate(filtered, page, PAGE_SIZE).map((u) => (
                 <div key={u.id} className="p-4 flex items-center gap-3">
-                  <div className={cn('h-10 w-10 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
-                    u.derivedRole === 'SUPER_ADMIN' ? 'bg-red-100 text-red-600' :
-                    u.derivedRole === 'MANAGER' ? 'bg-purple-100 text-purple-600' :
-                    'bg-gray-100 text-gray-600'
-                  )}>{u.name.charAt(0)}</div>
+                  <Avatar src={u.avatarUrl} name={u.name} size="md" />
                   <div className="min-w-0 flex-1">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium text-gray-900 truncate">{u.name}</p>

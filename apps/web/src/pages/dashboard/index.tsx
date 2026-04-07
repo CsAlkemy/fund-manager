@@ -8,6 +8,7 @@ import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Avatar } from '@/components/ui/Avatar';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { PiggyBank, AlertTriangle, Clock, Wallet, Users, DollarSign, Hourglass, LayoutGrid, Receipt } from 'lucide-react';
@@ -480,9 +481,7 @@ function SuperAdminDashboard() {
               return (
                 <div key={g.id} className="flex items-center justify-between p-3 rounded-lg border border-gray-50 hover:border-gray-200 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-blue-50 flex items-center justify-center text-blue-600 text-sm font-bold">
-                      {g.name.charAt(0)}
-                    </div>
+                    <Avatar src={g.logoUrl} name={g.name} size="md" shape="rounded" className="bg-blue-600" />
                     <div>
                       <p className="text-sm font-medium text-gray-900">{g.name}</p>
                       <p className="text-xs text-gray-400">

@@ -8,6 +8,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
+import { Avatar } from '@/components/ui/Avatar';
 import { CheckCircle, XCircle, ExternalLink, Image } from 'lucide-react';
 
 const PAGE_SIZE = 10;
@@ -134,7 +135,7 @@ export default function VerifyPaymentsPage() {
                     <tr key={c.id} className="hover:bg-gray-50/50">
                       <td className="px-5 py-3">
                         <div className="flex items-center gap-2">
-                          <div className="h-7 w-7 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">{c.user.name.charAt(0)}</div>
+                          <Avatar src={c.user.avatarUrl} name={c.user.name} size="sm" />
                           <span className="font-medium text-gray-900">{c.user.name}</span>
                         </div>
                       </td>
@@ -172,7 +173,7 @@ export default function VerifyPaymentsPage() {
                 <div key={c.id} className="p-4">
                   <div className="flex items-center justify-between mb-2">
                     <div className="flex items-center gap-2">
-                      <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">{c.user.name.charAt(0)}</div>
+                      <Avatar src={c.user.avatarUrl} name={c.user.name} size="sm" />
                       <div>
                         <p className="text-sm font-medium text-gray-900">{c.user.name}</p>
                         <p className="text-xs text-gray-400">{new Date(0, c.month - 1).toLocaleString(locale, { month: 'short' })} {c.year}</p>

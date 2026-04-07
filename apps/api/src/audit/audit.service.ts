@@ -15,7 +15,7 @@ export class AuditService {
     const [logs, total] = await Promise.all([
       this.prisma.auditLog.findMany({
         where: { groupId },
-        include: { actor: { select: { id: true, name: true, email: true } } },
+        include: { actor: { select: { id: true, name: true, email: true, avatarUrl: true } } },
         orderBy: { createdAt: 'desc' },
         skip: (page - 1) * limit,
         take: limit,

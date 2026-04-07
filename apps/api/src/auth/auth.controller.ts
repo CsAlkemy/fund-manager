@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Patch, Post, UseGuards } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard';
@@ -29,6 +29,17 @@ export class AuthController {
   @ApiOperation({ summary: 'Get current user profile with group memberships' })
   async getProfile(@CurrentUser('sub') userId: string) {
     return this.authService.getProfile(userId);
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Update user profile (name, phone, bkashNumber, avatarUrl)' })
+  async updateProfile(
+    @CurrentUser('sub') userId: string,
+    @Body() body: { name?: string; phone?: string; bkashNumber?: string; avatarUrl?: string },
+  ) {
+    return this.authService.updateProfile(userId, body);
   }
 
   @Post('forgot-password')

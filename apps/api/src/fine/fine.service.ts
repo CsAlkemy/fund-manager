@@ -85,7 +85,7 @@ export class FineService {
 
     return this.prisma.fine.findMany({
       where,
-      include: { user: { select: { id: true, name: true, email: true } } },
+      include: { user: { select: { id: true, name: true, email: true, avatarUrl: true } } },
       orderBy: [{ year: 'desc' }, { month: 'desc' }],
     });
   }

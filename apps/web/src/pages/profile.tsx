@@ -4,8 +4,10 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { changePasswordSchema, type ChangePasswordInput } from '@fund-manager/shared';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
+import { ImageUpload } from '@/components/ui/ImageUpload';
+import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '@/hooks/useAuth';
-import { api } from '@/lib/api';
+import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { Mail, Phone, Wallet, Shield, Users, Pen, Lock, Calendar } from 'lucide-react';
 import { cn } from '@/lib/cn';
@@ -36,12 +38,22 @@ export default function ProfilePage() {
 
   const onSubmit = async (data: any) => {
     try {
-      await api.post('/auth/register', data);
+      await api.patch('/auth/profile', data);
       toast.success('Profile updated!');
       setShowEdit(false);
       await refresh();
     } catch (err: any) {
       toast.error(err.response?.data?.message || 'Failed to update');
+    }
+  };
+
+  const handleAvatarUploaded = async (url: string) => {
+    try {
+      await api.patch('/auth/profile', { avatarUrl: url });
+      await refresh();
+      toast.success('Photo updated!');
+    } catch {
+      toast.error('Failed to update photo');
     }
   };
 
@@ -55,14 +67,12 @@ export default function ProfilePage() {
         <div className="rounded-2xl overflow-hidden mb-6 bg-white border border-gray-100 shadow-sm">
           {/* Banner */}
           <div className={cn('relative h-32 bg-gradient-to-br', avatarColor)}>
-            {/* Decorative pattern */}
             <div className="absolute inset-0 opacity-10">
               <div className="absolute top-4 right-8 w-20 h-20 rounded-full border-2 border-white" />
               <div className="absolute top-10 right-20 w-12 h-12 rounded-full border-2 border-white" />
               <div className="absolute -bottom-4 left-12 w-16 h-16 rounded-full border-2 border-white" />
             </div>
 
-            {/* Edit button */}
             <button
               onClick={() => setShowEdit(true)}
               className="absolute top-4 right-4 flex items-center gap-1.5 bg-white/20 backdrop-blur-sm hover:bg-white/30 text-white text-xs font-medium px-3 py-1.5 rounded-lg transition-colors"
@@ -70,7 +80,6 @@ export default function ProfilePage() {
               <Pen className="w-3 h-3" /> Edit Profile
             </button>
 
-            {/* Role badge */}
             <div className="absolute top-4 left-4">
               <span className={cn('inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium border', roleBadgeBg)}>
                 <Shield className="w-3 h-3" /> {roleLabel}
@@ -80,10 +89,37 @@ export default function ProfilePage() {
 
           {/* Avatar + Name */}
           <div className="relative px-6 pb-6">
-            <div className={cn('absolute -top-10 left-6 h-20 w-20 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg', avatarColor)}>
-              {user?.name?.charAt(0)?.toUpperCase() || '?'}
+            <div className="absolute -top-10 left-6">
+              {user?.avatarUrl ? (
+                <ImageUpload
+                  currentUrl={assetUrl(user.avatarUrl)}
+                  onUploaded={handleAvatarUploaded}
+                  shape="rounded"
+                  size="lg"
+                  className="border-4 !border-white shadow-lg !border-solid"
+                />
+              ) : (
+                <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-input')?.click()}>
+                  <div className={cn('h-24 w-24 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg', avatarColor)}>
+                    {user?.name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                  <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-4 border-transparent">
+                    <Pen className="w-5 h-5 text-white" />
+                  </div>
+                  <input id="avatar-input" type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    const formData = new FormData();
+                    formData.append('file', file);
+                    try {
+                      const res = await api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                      await handleAvatarUploaded(res.data.url);
+                    } catch { toast.error('Upload failed'); }
+                  }} />
+                </div>
+              )}
             </div>
-            <div className="pt-14">
+            <div className="pt-16">
               <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
               <p className="text-sm text-gray-500 mt-0.5">{user?.email}</p>
             </div>
@@ -92,7 +128,6 @@ export default function ProfilePage() {
 
         {/* Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-          {/* Personal Info */}
           <div className="rounded-xl bg-white border border-gray-100 p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Users className="w-4 h-4 text-gray-400" /> Personal Info
@@ -126,7 +161,6 @@ export default function ProfilePage() {
             </div>
           </div>
 
-          {/* Group Info */}
           <div className="rounded-xl bg-white border border-gray-100 p-5">
             <h3 className="text-sm font-semibold text-gray-900 mb-4 flex items-center gap-2">
               <Calendar className="w-4 h-4 text-gray-400" /> Fund Group
@@ -135,9 +169,7 @@ export default function ProfilePage() {
               <div className="space-y-4">
                 {user.memberships.map((m) => (
                   <div key={m.group.id} className="flex items-center gap-3">
-                    <div className={cn('h-11 w-11 rounded-xl bg-gradient-to-br flex items-center justify-center text-white text-sm font-bold', avatarColor)}>
-                      {m.group.name.charAt(0)}
-                    </div>
+                    <Avatar src={m.group.logoUrl} name={m.group.name} size="lg" shape="rounded" />
                     <div>
                       <p className="text-sm font-semibold text-gray-900">{m.group.name}</p>
                       <div className="flex items-center gap-2 mt-0.5">
@@ -159,7 +191,6 @@ export default function ProfilePage() {
                 <p className="text-xs text-gray-400 mt-0.5">Your manager will add you</p>
               </div>
             )}
-
           </div>
         </div>
 
@@ -183,52 +214,30 @@ export default function ProfilePage() {
         </div>
       </div>
 
-      {/* Change Password Modal */}
       <ChangePasswordModal isOpen={showChangePassword} onClose={() => setShowChangePassword(false)} />
 
-      {/* Edit Profile Modal */}
       <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Profile">
         <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
             <div className="relative">
-              <input
-                type="email"
-                value={user?.email || ''}
-                disabled
-                className="w-full rounded-lg border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-400 cursor-not-allowed pl-10"
-              />
+              <input type="email" value={user?.email || ''} disabled className="w-full rounded-lg border border-gray-100 bg-gray-50 px-4 py-2.5 text-sm text-gray-400 cursor-not-allowed pl-10" />
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-300" />
             </div>
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Full Name</label>
-            <input
-              {...form.register('name')}
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-            />
+            <input {...form.register('name')} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input
-              {...form.register('phone')}
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              placeholder="+880 1XXX XXXXXX"
-            />
+            <input {...form.register('phone')} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary" placeholder="+880 1XXX XXXXXX" />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">bKash Number</label>
-            <input
-              {...form.register('bkashNumber')}
-              className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-              placeholder="01XXX XXXXXX"
-            />
+            <input {...form.register('bkashNumber')} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary" placeholder="01XXX XXXXXX" />
           </div>
-          <button
-            type="submit"
-            disabled={form.formState.isSubmitting}
-            className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
-          >
+          <button type="submit" disabled={form.formState.isSubmitting} className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50">
             {form.formState.isSubmitting ? 'Saving...' : 'Save Changes'}
           </button>
         </form>
@@ -238,9 +247,7 @@ export default function ProfilePage() {
 }
 
 function ChangePasswordModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
-  const form = useForm<ChangePasswordInput>({
-    resolver: zodResolver(changePasswordSchema),
-  });
+  const form = useForm<ChangePasswordInput>({ resolver: zodResolver(changePasswordSchema) });
 
   const onSubmit = async (data: ChangePasswordInput) => {
     try {
@@ -258,33 +265,15 @@ function ChangePasswordModal({ isOpen, onClose }: { isOpen: boolean; onClose: ()
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
-          <input
-            type="password"
-            autoComplete="current-password"
-            {...form.register('currentPassword')}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-          />
-          {form.formState.errors.currentPassword && (
-            <p className="mt-1 text-xs text-red-500">{form.formState.errors.currentPassword.message}</p>
-          )}
+          <input type="password" autoComplete="current-password" {...form.register('currentPassword')} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary" />
+          {form.formState.errors.currentPassword && <p className="mt-1 text-xs text-red-500">{form.formState.errors.currentPassword.message}</p>}
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
-          <input
-            type="password"
-            autoComplete="new-password"
-            {...form.register('newPassword')}
-            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
-          />
-          {form.formState.errors.newPassword && (
-            <p className="mt-1 text-xs text-red-500">{form.formState.errors.newPassword.message}</p>
-          )}
+          <input type="password" autoComplete="new-password" {...form.register('newPassword')} className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary" />
+          {form.formState.errors.newPassword && <p className="mt-1 text-xs text-red-500">{form.formState.errors.newPassword.message}</p>}
         </div>
-        <button
-          type="submit"
-          disabled={form.formState.isSubmitting}
-          className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
-        >
+        <button type="submit" disabled={form.formState.isSubmitting} className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50">
           {form.formState.isSubmitting ? 'Changing...' : 'Change Password'}
         </button>
       </form>

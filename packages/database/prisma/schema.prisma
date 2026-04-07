@@ -80,6 +80,7 @@ model User {
   phone         String?
   bkashNumber   String?
   bankInfo      String?
+  avatarUrl     String?
   systemRole    SystemRole @default(USER)
   isActive      Boolean   @default(true)
   createdAt     DateTime  @default(now())
@@ -121,6 +122,8 @@ model Group {
   monthlyAmount      Int         @default(1000)
   fineAmount         Int         @default(100)
   fineDeadlineDay    Int         @default(15)
+  logoUrl            String?
+  coverUrl           String?
   inviteCode         String      @unique @default(cuid())
   status             GroupStatus @default(ACTIVE)
   createdAt          DateTime    @default(now())

@@ -5,6 +5,7 @@ import { api } from '@/lib/api';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
+import { Avatar } from '@/components/ui/Avatar';
 
 export default function GroupsListPage() {
   const { t } = useTranslation();
@@ -47,7 +48,10 @@ export default function GroupsListPage() {
             return (
               <Link key={g.id} href={`/groups/${g.id}`} className="rounded-xl bg-white p-6 border border-gray-100 hover:border-brand-primary/30 transition-colors">
                 <div className="flex items-center justify-between mb-3">
-                  <h3 className="font-semibold text-gray-900">{g.name}</h3>
+                  <div className="flex items-center gap-2.5">
+                    <Avatar src={g.logoUrl} name={g.name} size="sm" shape="rounded" />
+                    <h3 className="font-semibold text-gray-900">{g.name}</h3>
+                  </div>
                   <span className={`text-xs rounded-full px-2 py-0.5 font-medium ${
                     myRole === 'MANAGER' ? 'bg-purple-100 text-purple-700' :
                     myRole === 'TREASURER' ? 'bg-blue-100 text-blue-700' :
