@@ -6,6 +6,7 @@ import { Pagination, paginate } from '@/components/ui/Pagination';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
 
 import toast from 'react-hot-toast';
@@ -136,7 +137,7 @@ export default function ContributionsPage() {
 
       <div className="rounded-xl bg-white p-4 sm:p-6 border border-gray-100">
         {loading ? (
-          <p className="text-gray-400">{t('common.loading')}</p>
+          <LoadingSpinner />
         ) : contributions.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">{t('contributions.noContributions')}</p>

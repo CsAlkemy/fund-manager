@@ -8,6 +8,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function GroupDetailPage() {
   const { t, locale } = useTranslation();
@@ -143,7 +144,7 @@ export default function GroupDetailPage() {
     finally { setSubmitting(false); }
   };
 
-  if (loading) return <DashboardLayout><p className="text-gray-400">{t('common.loading')}</p></DashboardLayout>;
+  if (loading) return <DashboardLayout><LoadingSpinner /></DashboardLayout>;
   if (!group) return <DashboardLayout><p className="text-gray-500">{t('common.groupNotFound')}</p></DashboardLayout>;
 
   return (

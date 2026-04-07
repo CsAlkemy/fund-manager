@@ -9,6 +9,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import {
   ArrowLeft, Pencil, Pause, Play, ArrowRightLeft, Users,
   Wallet, AlertTriangle, Calendar, Mail, Shield,
@@ -85,7 +86,7 @@ export default function AdminGroupDetailPage() {
 
   const inputCls = "w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary";
 
-  if (loading) return <DashboardLayout><p className="text-gray-400">{t('common.loading')}</p></DashboardLayout>;
+  if (loading) return <DashboardLayout><LoadingSpinner /></DashboardLayout>;
   if (!group) return <DashboardLayout><p className="text-gray-500">{t('common.groupNotFound')}</p></DashboardLayout>;
 
   const mgr = group.memberships?.find((m: any) => m.role === 'MANAGER');

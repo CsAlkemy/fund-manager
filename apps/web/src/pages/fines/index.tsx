@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
 
 export default function FinesPage() {
@@ -38,7 +39,7 @@ export default function FinesPage() {
 
       <div className="rounded-xl bg-white p-6 border border-gray-100">
         {loading ? (
-          <p className="text-gray-400">{t('common.loading')}</p>
+          <LoadingSpinner />
         ) : fines.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-2xl mb-2">🎉</p>

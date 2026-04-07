@@ -7,6 +7,7 @@ import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function GroupSettingsPage() {
   const { t } = useTranslation();
@@ -43,7 +44,7 @@ export default function GroupSettingsPage() {
     }
   };
 
-  if (loading) return <DashboardLayout><p className="text-gray-400">{t('common.loading')}</p></DashboardLayout>;
+  if (loading) return <DashboardLayout><LoadingSpinner /></DashboardLayout>;
 
   return (
     <DashboardLayout>

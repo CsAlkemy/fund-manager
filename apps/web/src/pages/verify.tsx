@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
@@ -103,7 +104,7 @@ export default function VerifyPaymentsPage() {
       )}
 
       <div className="rounded-xl bg-white border border-gray-100 overflow-hidden">
-        {loading ? <p className="text-gray-400 p-6">{t('common.loading')}</p> : pending.length === 0 ? (
+        {loading ? <LoadingSpinner /> : pending.length === 0 ? (
           <div className="text-center py-12">
             <CheckCircle className="w-10 h-10 text-green-300 mx-auto mb-3" />
             <p className="text-gray-500 font-medium">{t('verify.allCaughtUp')}</p>

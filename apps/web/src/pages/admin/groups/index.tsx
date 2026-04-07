@@ -9,6 +9,7 @@ import Link from 'next/link';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Plus, Pencil, Pause, Play, ChevronRight, Mail } from 'lucide-react';
 
 const PAGE_SIZE = 10;
@@ -170,7 +171,7 @@ export default function AdminGroupsPage() {
       )}
 
       <div className="rounded-xl bg-white border border-gray-100 overflow-hidden">
-        {loading ? <p className="text-gray-400 p-6">{t('common.loading')}</p> : groups.length === 0 ? (
+        {loading ? <LoadingSpinner /> : groups.length === 0 ? (
           <div className="p-12 text-center">
             <p className="text-gray-500 mb-2">{t('admin.noGroups')}</p>
             <button onClick={() => { resetCreateForm(); setShowCreate(true); }} className="text-brand-primary hover:underline text-sm">{t('admin.createFirst')}</button>

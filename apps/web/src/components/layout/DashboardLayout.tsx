@@ -4,6 +4,7 @@ import { BottomNav } from './BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
 import { Logo } from '@/components/ui/Logo';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -25,11 +26,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   }, [collapsed]);
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-400">{t('common.loading')}</p>
-      </div>
-    );
+    return <LoadingSpinner />;
   }
 
   return (
@@ -52,10 +49,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
       />
 
       {/* Bottom nav for mobile */}
-      <BottomNav user={user} onMoreClick={() => setSidebarOpen(true)} />
+      <BottomNav user={user} onLogout={logout} />
 
       <main className={`transition-all duration-200 ${collapsed ? 'md:ml-[68px]' : 'md:ml-60'}`}>
-        <div className="p-4 pt-20 pb-28 md:p-8 md:pt-8 md:pb-8">{children}</div>
+        <div className="p-4 pt-20 pb-32 md:p-8 md:pt-8 md:pb-8">{children}</div>
       </main>
     </div>
   );

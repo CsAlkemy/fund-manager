@@ -5,6 +5,7 @@ import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
@@ -116,7 +117,7 @@ export default function MembersPage() {
 
       {/* Members List */}
       <div className="rounded-xl bg-white border border-gray-100 overflow-hidden">
-        {loading ? <p className="text-gray-400 p-6">{t('common.loading')}</p> : filtered.length === 0 ? (
+        {loading ? <LoadingSpinner /> : filtered.length === 0 ? (
           <div className="text-center py-12">
             <UsersIcon className="w-10 h-10 text-gray-200 mx-auto mb-3" />
             <p className="text-gray-500">{members.length === 0 ? t('members.noMembers') : t('members.noMatch')}</p>
@@ -170,9 +171,9 @@ export default function MembersPage() {
                       <p className="text-xs text-gray-400 truncate">{m.user.email}</p>
                     </div>
                   </div>
-                  <button onClick={() => setRemoveTarget({ id: m.user.id, name: m.user.name })} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0">
+                  {/* <button onClick={() => setRemoveTarget({ id: m.user.id, name: m.user.name })} className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500 shrink-0">
                     <UserMinus className="w-4 h-4" />
-                  </button>
+                  </button> */}
                 </div>
               ))}
             </div>

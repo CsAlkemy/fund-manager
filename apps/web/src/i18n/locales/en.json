@@ -37,6 +37,9 @@
   "nav.fines": "Fines",
   "nav.profile": "Profile",
   "nav.signOut": "Sign out",
+  "nav.btmVerify": "Verify",
+  "nav.btmPayments": "Payments",
+  "nav.more": "More",
   "nav.expandSidebar": "Expand sidebar",
   "nav.collapseSidebar": "Collapse sidebar",
 

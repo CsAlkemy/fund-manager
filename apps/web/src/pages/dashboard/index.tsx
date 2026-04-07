@@ -7,9 +7,10 @@ import { ContributionList } from '@/components/ui/ContributionList';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
-import { PiggyBank, AlertTriangle, Clock, Wallet, Users, DollarSign, Hourglass, LayoutGrid } from 'lucide-react';
+import { PiggyBank, AlertTriangle, Clock, Wallet, Users, DollarSign, Hourglass, LayoutGrid, Receipt } from 'lucide-react';
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
@@ -197,7 +198,7 @@ function MemberDashboard() {
     finally { setSubmitting(false); }
   };
 
-  if (loading) return <p className="text-gray-400">{t('common.loading')}</p>;
+  if (loading) return <LoadingSpinner />;
 
   if (!groupId) {
     return (
@@ -222,10 +223,10 @@ function MemberDashboard() {
       </div>
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard title={t('dashboard.groupFund')} value={`৳${(groupSummary?.totalCollected || 0).toLocaleString()}`} change={t('dashboard.groupTotal')} changeType="positive" color="green" icon={Wallet} />
-        <StatCard title={t('dashboard.groupFines')} value={`৳${(groupSummary?.totalFines || 0).toLocaleString()}`} change={groupSummary?.totalFinesPending > 0 ? t('dashboard.mgr.pendingAmount', { amount: groupSummary.totalFinesPending }) : t('dashboard.noFines')} changeType={groupSummary?.totalFinesPending > 0 ? 'negative' : 'positive'} color="red" icon={AlertTriangle} />
-        <StatCard title={t('dashboard.mySavings')} value={`৳${stats.totalSaved.toLocaleString()}`} change={t('dashboard.verifiedContributions')} changeType="positive" color="blue" icon={PiggyBank} />
-        <StatCard title={t('dashboard.myFines')} value={`৳${stats.totalFines.toLocaleString()}`} change={stats.pendingFines > 0 ? t('contributions.pendingAmount', { amount: stats.pendingFines }) : t('dashboard.noFines')} changeType={stats.totalFines > 0 ? 'negative' : 'positive'} color="yellow" icon={Clock} />
+        <StatCard title={t('dashboard.groupFund')} value={`৳${(groupSummary?.totalCollected || 0).toLocaleString()}`} color="green" icon={Wallet} />
+        <StatCard title={t('dashboard.groupExpenses')} value={`৳${(groupSummary?.totalExpenses || 0).toLocaleString()}`} color="purple" icon={Receipt} />
+        <StatCard title={t('dashboard.mySavings')} value={`৳${stats.totalSaved.toLocaleString()}`} color="blue" icon={PiggyBank} />
+        <StatCard title={t('dashboard.myFines')} value={`৳${stats.totalFines.toLocaleString()}`} color="yellow" icon={Clock} />
       </div>
 
       {/* Contributions with Filters */}
@@ -341,7 +342,7 @@ function ManagerDashboard() {
 
   const [chartRange, setChartRange] = useState(12);
 
-  if (loading) return <p className="text-gray-400">{t('common.loading')}</p>;
+  if (loading) return <LoadingSpinner />;
   if (!group) return <p className="text-gray-500">{t('dashboard.mgr.noGroup')}</p>;
 
   const statusData = [
@@ -357,10 +358,11 @@ function ManagerDashboard() {
         <p className="text-sm text-gray-500">{t('dashboard.mgr.title')} · {t('dashboard.mgr.members', { count: group.memberships?.length || 0 })}</p>
       </div>
 
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
         <StatCard title={t('dashboard.mgr.fundBalance')} value={`৳${(summary?.totalCollected || 0).toLocaleString()}`} color="green" icon={Wallet} />
         <StatCard title={t('dashboard.mgr.contributions')} value={`৳${(summary?.totalContributions || 0).toLocaleString()}`} color="blue" icon={DollarSign} />
         <StatCard title={t('dashboard.mgr.fines')} value={`৳${(summary?.totalFines || 0).toLocaleString()}`} color="red" icon={AlertTriangle} change={summary?.totalFinesPending > 0 ? t('dashboard.mgr.pendingAmount', { amount: summary.totalFinesPending }) : undefined} changeType={summary?.totalFinesPending > 0 ? 'negative' : 'neutral'} />
+        <StatCard title={t('dashboard.mgr.totalExpenses')} value={`৳${(summary?.totalExpenses || 0).toLocaleString()}`} color="purple" icon={Receipt} />
         <StatCard title={t('dashboard.mgr.pending')} value={String(pending.length)} change={pending.length > 0 ? t('dashboard.mgr.needsAttention') : t('dashboard.mgr.allClear')} changeType={pending.length > 0 ? 'negative' : 'positive'} color="yellow" icon={Hourglass} />
       </div>
 
@@ -466,7 +468,7 @@ function SuperAdminDashboard() {
           <h2 className="text-lg font-semibold text-gray-900">{t('dashboard.admin.groups')}</h2>
           <a href="/admin/groups" className="text-sm text-brand-primary hover:underline">{t('common.viewAll')}</a>
         </div>
-        {loading ? <p className="text-gray-400">{t('common.loading')}</p> : groups.length === 0 ? (
+        {loading ? <LoadingSpinner /> : groups.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">{t('dashboard.admin.noGroups')}</p>
             <a href="/admin/groups" className="text-sm text-brand-primary hover:underline mt-1 inline-block">{t('dashboard.admin.createFirst')}</a>
@@ -509,7 +511,7 @@ export default function DashboardPage() {
   const { t } = useTranslation();
   const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
 
-  if (loading) return <DashboardLayout><p className="text-gray-400">{t('common.loading')}</p></DashboardLayout>;
+  if (loading) return <DashboardLayout><LoadingSpinner /></DashboardLayout>;
 
   return (
     <DashboardLayout>

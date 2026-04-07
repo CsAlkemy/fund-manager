@@ -6,6 +6,7 @@ import { api } from '@/lib/api';
 import { useRouter } from 'next/router';
 import { cn } from '@/lib/cn';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Shield, Users as UsersIcon } from 'lucide-react';
 
 const PAGE_SIZE = 10;
@@ -120,7 +121,7 @@ export default function AdminManagersPage() {
 
       {/* User List */}
       <div className="rounded-xl bg-white border border-gray-100 overflow-hidden">
-        {loading ? <p className="text-gray-400 p-6">{t('common.loading')}</p> : filtered.length === 0 ? (
+        {loading ? <LoadingSpinner /> : filtered.length === 0 ? (
           <p className="text-gray-400 p-6 text-center">{t('common.noUsersMatch')}</p>
         ) : (
           <>

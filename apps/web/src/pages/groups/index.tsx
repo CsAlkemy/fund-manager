@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { api } from '@/lib/api';
 import Link from 'next/link';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 
 export default function GroupsListPage() {
   const { t } = useTranslation();
@@ -33,7 +34,7 @@ export default function GroupsListPage() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400">{t('common.loading')}</p>
+        <LoadingSpinner />
       ) : groups.length === 0 ? (
         <div className="rounded-xl bg-white p-12 border border-gray-100 text-center">
           <p className="text-gray-500 mb-2">{t('groups.noGroups')}</p>

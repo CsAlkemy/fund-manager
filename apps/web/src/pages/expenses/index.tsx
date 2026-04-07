@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
+import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { ExternalLink, Trash2 } from 'lucide-react';
@@ -116,7 +117,7 @@ export default function ExpensesPage() {
 
       <div className="rounded-xl bg-white p-4 sm:p-6 border border-gray-100">
         {loading ? (
-          <p className="text-gray-400">{t('common.loading')}</p>
+          <LoadingSpinner />
         ) : expenses.length === 0 ? (
           <div className="text-center py-8">
             <p className="text-gray-500">{t('expenses.noExpenses')}</p>
