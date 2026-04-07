@@ -4,7 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
-import { api } from '@/lib/api';
+import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
 import { CheckCircle, XCircle, ExternalLink, Image } from 'lucide-react';
@@ -143,7 +143,7 @@ export default function VerifyPaymentsPage() {
                       <td className="px-5 py-3 font-medium text-gray-900">৳{c.amount}</td>
                       <td className="px-5 py-3">
                         {c.screenshotUrl ? (
-                          <button onClick={() => setShowProof(`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`)} className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                          <button onClick={() => setShowProof(assetUrl(c.screenshotUrl))} className="text-xs text-blue-500 hover:underline flex items-center gap-1">
                             <Image className="w-3 h-3" /> {t('verify.viewProof')}
                           </button>
                         ) : <span className="text-xs text-gray-300">—</span>}
@@ -185,7 +185,7 @@ export default function VerifyPaymentsPage() {
                   </div>
                   <div className="flex items-center gap-2">
                     {c.screenshotUrl && (
-                      <button onClick={() => setShowProof(`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`)} className="rounded-lg bg-gray-100 text-gray-600 px-3 py-2 text-xs font-medium flex-1 text-center">
+                      <button onClick={() => setShowProof(assetUrl(c.screenshotUrl))} className="rounded-lg bg-gray-100 text-gray-600 px-3 py-2 text-xs font-medium flex-1 text-center">
                         {t('verify.viewProofMobile')}
                       </button>
                     )}

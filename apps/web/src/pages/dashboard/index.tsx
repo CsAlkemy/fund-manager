@@ -89,6 +89,7 @@ function MemberDashboard() {
   const { user } = useAuth();
   const { t, locale } = useTranslation();
   const [stats, setStats] = useState({ totalSaved: 0, totalFines: 0, pendingFines: 0, pendingPayments: 0 });
+  const [groupSummary, setGroupSummary] = useState<any>(null);
   const [contributions, setContributions] = useState<any[]>([]);
   const [groupId, setGroupId] = useState<string | null>(null);
   const [group, setGroup] = useState<any>(null);
@@ -120,11 +121,13 @@ function MemberDashboard() {
   const loadMemberData = (gId: string) => {
     Promise.all([
       api.get(`/groups/${gId}`),
+      api.get(`/groups/${gId}/summary`),
       api.get(`/groups/${gId}/contributions/my`),
       api.get(`/groups/${gId}/fines/my`),
-    ]).then(([g, c, f]) => {
+    ]).then(([g, s, c, f]) => {
       setGroupId(gId);
       setGroup(g.data);
+      setGroupSummary(s.data);
       setContributions(c.data);
       setPayAmount(g.data.monthlyAmount || 1000);
 
@@ -181,11 +184,15 @@ function MemberDashboard() {
       setShowPayment(false);
       setPayTxId(''); setScreenshotUrl('');
       // Reload
-      const c = await api.get(`/groups/${groupId}/contributions/my`);
+      const [c, s] = await Promise.all([
+        api.get(`/groups/${groupId}/contributions/my`),
+        api.get(`/groups/${groupId}/summary`),
+      ]);
       setContributions(c.data);
+      setGroupSummary(s.data);
       const verified = c.data.filter((x: any) => x.status === 'VERIFIED');
       const pending = c.data.filter((x: any) => x.status === 'PENDING');
-      setStats((s) => ({ ...s, totalSaved: verified.reduce((a: number, x: any) => a + x.amount, 0), pendingPayments: pending.length }));
+      setStats((prev) => ({ ...prev, totalSaved: verified.reduce((a: number, x: any) => a + x.amount, 0), pendingPayments: pending.length }));
     } catch (err: any) { toast.error(err.response?.data?.message || t('common.failed')); }
     finally { setSubmitting(false); }
   };
@@ -214,10 +221,11 @@ function MemberDashboard() {
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-        <StatCard title={t('dashboard.totalSaved')} value={`৳${stats.totalSaved.toLocaleString()}`} change={t('dashboard.verifiedContributions')} changeType="positive" color="green" icon={PiggyBank} />
-        <StatCard title={t('dashboard.totalFines')} value={`৳${stats.totalFines.toLocaleString()}`} change={stats.totalFines > 0 ? t('dashboard.outstanding') : t('dashboard.noFines')} changeType={stats.totalFines > 0 ? 'negative' : 'positive'} color="red" icon={AlertTriangle} />
-        <StatCard title={t('dashboard.pendingPayments')} value={String(stats.pendingPayments)} change={t('dashboard.awaitingVerification')} changeType="neutral" color="yellow" icon={Clock} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <StatCard title={t('dashboard.groupFund')} value={`৳${(groupSummary?.totalCollected || 0).toLocaleString()}`} change={t('dashboard.groupTotal')} changeType="positive" color="green" icon={Wallet} />
+        <StatCard title={t('dashboard.groupFines')} value={`৳${(groupSummary?.totalFines || 0).toLocaleString()}`} change={groupSummary?.totalFinesPending > 0 ? t('dashboard.mgr.pendingAmount', { amount: groupSummary.totalFinesPending }) : t('dashboard.noFines')} changeType={groupSummary?.totalFinesPending > 0 ? 'negative' : 'positive'} color="red" icon={AlertTriangle} />
+        <StatCard title={t('dashboard.mySavings')} value={`৳${stats.totalSaved.toLocaleString()}`} change={t('dashboard.verifiedContributions')} changeType="positive" color="blue" icon={PiggyBank} />
+        <StatCard title={t('dashboard.myFines')} value={`৳${stats.totalFines.toLocaleString()}`} change={stats.pendingFines > 0 ? t('contributions.pendingAmount', { amount: stats.pendingFines }) : t('dashboard.noFines')} changeType={stats.totalFines > 0 ? 'negative' : 'positive'} color="yellow" icon={Clock} />
       </div>
 
       {/* Contributions with Filters */}

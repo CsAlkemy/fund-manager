@@ -18,6 +18,7 @@
     "@nestjs/serve-static": "^5.0.4",
     "@nestjs/swagger": "^11.2.6",
     "@vendia/serverless-express": "^4.12.0",
+    "@vercel/blob": "^2.3.3",
     "aws-lambda": "^1.0.7",
     "bcryptjs": "^3.0.3",
     "dotenv": "^17.4.1",

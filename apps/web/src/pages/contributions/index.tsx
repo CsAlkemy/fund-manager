@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
-import { StatCard } from '@/components/ui/StatCard';
 import { ContributionFilters, filterAndSort } from '@/components/ui/ContributionFilters';
 import { ContributionList } from '@/components/ui/ContributionList';
 import { Pagination, paginate } from '@/components/ui/Pagination';
@@ -8,7 +7,7 @@ import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
 import { api } from '@/lib/api';
-import { PiggyBank, AlertTriangle, Clock, Hash } from 'lucide-react';
+
 import toast from 'react-hot-toast';
 
 const PAGE_SIZE = 10;
@@ -61,9 +60,6 @@ export default function ContributionsPage() {
   }, [groupId]);
 
   const verified = contributions.filter((c) => c.status === 'VERIFIED');
-  const pending = contributions.filter((c) => c.status === 'PENDING');
-  const totalSaved = verified.reduce((a: number, c: any) => a + c.amount, 0);
-  const totalFines = fines.reduce((a: number, f: any) => a + f.amount, 0);
   const pendingFines = fines.filter((f) => f.status === 'PENDING').reduce((a: number, f: any) => a + f.amount, 0);
 
   // Filters
@@ -137,15 +133,6 @@ export default function ContributionsPage() {
           </button>
         )}
       </div>
-
-      {!isManager && (
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <StatCard title={t('dashboard.totalSaved')} value={`৳${totalSaved.toLocaleString()}`} change={t('contributions.verified', { count: verified.length })} changeType="positive" color="green" icon={PiggyBank} />
-          <StatCard title={t('dashboard.totalFines')} value={`৳${totalFines.toLocaleString()}`} change={pendingFines > 0 ? t('contributions.pendingAmount', { amount: pendingFines }) : t('fines.noPendingFines')} changeType={pendingFines > 0 ? 'negative' : 'positive'} color="red" icon={AlertTriangle} />
-          <StatCard title={t('dashboard.mgr.pending')} value={String(pending.length)} change={t('dashboard.awaitingVerification')} changeType="neutral" color="yellow" icon={Clock} />
-          <StatCard title={t('contributions.totalPayments')} value={String(contributions.length)} change={t('contributions.allTime')} changeType="neutral" color="blue" icon={Hash} />
-        </div>
-      )}
 
       <div className="rounded-xl bg-white p-4 sm:p-6 border border-gray-100">
         {loading ? (

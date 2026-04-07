@@ -5,7 +5,7 @@ import { StatCard } from '@/components/ui/StatCard';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useAuth } from '@/hooks/useAuth';
-import { api } from '@/lib/api';
+import { api, assetUrl } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { useTranslation } from '@/i18n/useTranslation';
 
@@ -205,7 +205,7 @@ export default function GroupDetailPage() {
                 </div>
                 <div className="flex items-center gap-2">
                   {c.screenshotUrl && (
-                    <a href={`${process.env.NEXT_PUBLIC_API_URL}${c.screenshotUrl}`} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">{t('groups.proofLink')}</a>
+                    <a href={assetUrl(c.screenshotUrl)} target="_blank" rel="noreferrer" className="text-xs text-blue-500 hover:underline">{t('groups.proofLink')}</a>
                   )}
                   <button onClick={() => handleVerify(c.id)} className="rounded bg-green-500 px-3 py-1 text-xs font-medium text-white hover:bg-green-600">{t('verify.approve')}</button>
                   <button onClick={() => setShowReject(c.id)} className="rounded bg-red-500 px-3 py-1 text-xs font-medium text-white hover:bg-red-600">{t('verify.reject')}</button>

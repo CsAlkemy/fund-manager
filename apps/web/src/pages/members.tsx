@@ -133,7 +133,7 @@ export default function MembersPage() {
                     <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.email')}</th>
                     <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.phone')}</th>
                     <th className="px-5 py-3 text-left font-medium text-gray-500">{t('table.bkash')}</th>
-                    <th className="px-5 py-3 text-right font-medium text-gray-500">{t('table.actions')}</th>
+                    {/* <th className="px-5 py-3 text-right font-medium text-gray-500">{t('table.actions')}</th> */}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
@@ -148,11 +148,11 @@ export default function MembersPage() {
                       <td className="px-5 py-3 text-gray-500">{m.user.email}</td>
                       <td className="px-5 py-3 text-gray-500">{m.user.phone || <span className="text-gray-300">—</span>}</td>
                       <td className="px-5 py-3 text-gray-500">{m.user.bkashNumber || <span className="text-gray-300">—</span>}</td>
-                      <td className="px-5 py-3 text-right">
+                      {/* <td className="px-5 py-3 text-right">
                         <button onClick={() => setRemoveTarget({ id: m.user.id, name: m.user.name })} className="p-1.5 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-500" title={t('common.remove')}>
                           <UserMinus className="w-4 h-4" />
                         </button>
-                      </td>
+                      </td> */}
                     </tr>
                   ))}
                 </tbody>

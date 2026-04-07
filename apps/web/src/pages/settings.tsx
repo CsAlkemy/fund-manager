@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
-import { useTranslation } from '@/i18n/useTranslation';
+import { assetUrl } from '@/lib/api';
 import { cn } from '@/lib/cn';
 import toast from 'react-hot-toast';
 import {
@@ -209,7 +209,7 @@ export default function SettingsPage() {
               </div>
               <div className="px-6 py-4 flex items-center justify-between">
                 <p className="text-sm text-gray-500">API Docs</p>
-                <a href={`${process.env.NEXT_PUBLIC_API_URL}/docs`} target="_blank" rel="noreferrer" className="text-xs text-brand-primary hover:underline">
+                <a href={assetUrl('/docs')} target="_blank" rel="noreferrer" className="text-xs text-brand-primary hover:underline">
                   Open Swagger →
                 </a>
               </div>

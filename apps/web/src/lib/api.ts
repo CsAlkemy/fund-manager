@@ -1,7 +1,14 @@
 import axios from 'axios';
 
+export const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+
+export function assetUrl(path: string): string {
+  if (path.startsWith('http')) return path;
+  return `${API_URL}${path}`;
+}
+
 export const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001',
+  baseURL: API_URL,
   withCredentials: true,
 });
 
