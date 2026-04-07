@@ -1,5 +1,9 @@
 import { cn } from '@/lib/cn';
+import { assetUrl } from '@/lib/api';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useState } from 'react';
+import { Modal } from './Modal';
+import { ExternalLink } from 'lucide-react';
 
 interface ContributionListProps {
   contributions: any[];
@@ -18,6 +22,8 @@ function StatusBadge({ status }: { status: string }) {
 
 export function ContributionList({ contributions, showMember = false }: ContributionListProps) {
   const { t, locale } = useTranslation();
+  const [proofUrl, setProofUrl] = useState<string | null>(null);
+
   if (contributions.length === 0) {
     return <p className="text-sm text-gray-400 py-6 text-center">{t('contributions.noContributions')}</p>;
   }
@@ -33,6 +39,7 @@ export function ContributionList({ contributions, showMember = false }: Contribu
               <th className="pb-3 text-left font-medium text-gray-500">{t('table.month')}</th>
               <th className="pb-3 text-left font-medium text-gray-500">{t('table.method')}</th>
               <th className="pb-3 text-left font-medium text-gray-500">{t('table.txid')}</th>
+              <th className="pb-3 text-left font-medium text-gray-500">{t('table.proof')}</th>
               <th className="pb-3 text-left font-medium text-gray-500">{t('table.status')}</th>
               <th className="pb-3 text-right font-medium text-gray-500">{t('table.amount')}</th>
             </tr>
@@ -46,6 +53,15 @@ export function ContributionList({ contributions, showMember = false }: Contribu
                 </td>
                 <td className="py-3 text-gray-500">{c.paymentMethod}</td>
                 <td className="py-3 text-gray-500 font-mono text-xs">{c.transactionId}</td>
+                <td className="py-3">
+                  {c.screenshotUrl ? (
+                    <button onClick={() => setProofUrl(assetUrl(c.screenshotUrl))} className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                      <ExternalLink className="w-3 h-3" /> {t('verify.viewProof')}
+                    </button>
+                  ) : (
+                    <span className="text-xs text-gray-300">—</span>
+                  )}
+                </td>
                 <td className="py-3">
                   <StatusBadge status={c.status} />
                   {c.status === 'REJECTED' && c.rejectionReason && (
@@ -77,6 +93,11 @@ export function ContributionList({ contributions, showMember = false }: Contribu
                 <span className="text-xs text-gray-500 bg-gray-50 px-2 py-0.5 rounded">{c.paymentMethod}</span>
                 <StatusBadge status={c.status} />
               </div>
+              {c.screenshotUrl && (
+                <button onClick={() => setProofUrl(assetUrl(c.screenshotUrl))} className="text-xs text-blue-500 hover:underline flex items-center gap-1">
+                  <ExternalLink className="w-3 h-3" /> {t('verify.viewProof')}
+                </button>
+              )}
             </div>
             <p className="text-xs text-gray-400 mt-2 font-mono truncate">TxID: {c.transactionId}</p>
             {c.status === 'REJECTED' && c.rejectionReason && (
@@ -85,6 +106,18 @@ export function ContributionList({ contributions, showMember = false }: Contribu
           </div>
         ))}
       </div>
+
+      {/* Proof Modal */}
+      <Modal isOpen={!!proofUrl} onClose={() => setProofUrl(null)} title={t('verify.proofTitle')}>
+        {proofUrl && (
+          <div className="space-y-3">
+            <img src={proofUrl} alt="Payment proof" className="w-full rounded-lg" />
+            <a href={proofUrl} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-1.5 text-sm text-blue-500 hover:underline">
+              <ExternalLink className="w-3.5 h-3.5" /> {t('verify.openFullSize')}
+            </a>
+          </div>
+        )}
+      </Modal>
     </>
   );
 }
