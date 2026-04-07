@@ -25,10 +25,6 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     localStorage.setItem('sidebar-collapsed', String(collapsed));
   }, [collapsed]);
 
-  if (loading) {
-    return <LoadingSpinner />;
-  }
-
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Mobile top bar */}
@@ -39,20 +35,24 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </header>
 
-      <Sidebar
-        user={user}
-        onLogout={logout}
-        mobileOpen={sidebarOpen}
-        onMobileClose={() => setSidebarOpen(false)}
-        collapsed={collapsed}
-        onToggleCollapse={() => setCollapsed(!collapsed)}
-      />
+      {!loading && (
+        <>
+          <Sidebar
+            user={user}
+            onLogout={logout}
+            mobileOpen={sidebarOpen}
+            onMobileClose={() => setSidebarOpen(false)}
+            collapsed={collapsed}
+            onToggleCollapse={() => setCollapsed(!collapsed)}
+          />
+          <BottomNav user={user} onLogout={logout} />
+        </>
+      )}
 
-      {/* Bottom nav for mobile */}
-      <BottomNav user={user} onLogout={logout} />
-
-      <main className={`transition-all duration-200 ${collapsed ? 'md:ml-[68px]' : 'md:ml-60'}`}>
-        <div className="p-4 pt-20 pb-32 md:p-8 md:pt-8 md:pb-8">{children}</div>
+      <main className={`transition-all duration-200 ${!loading && collapsed ? 'md:ml-[68px]' : !loading ? 'md:ml-60' : ''}`}>
+        <div className="p-4 pt-20 pb-32 md:p-8 md:pt-8 md:pb-8">
+          {loading ? <LoadingSpinner /> : children}
+        </div>
       </main>
     </div>
   );

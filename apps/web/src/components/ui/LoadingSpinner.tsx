@@ -1,6 +1,6 @@
 export function LoadingSpinner() {
   return (
-    <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-white/60 backdrop-blur-sm">
+    <div className="flex items-center justify-center py-12">
       <style>{`
         @keyframes loader-pulse {
           0%, 100% { transform: scale(1); opacity: 1; }
