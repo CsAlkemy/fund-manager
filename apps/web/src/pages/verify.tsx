@@ -3,6 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroup } from '@/hooks/useGroup';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api, assetUrl } from '@/lib/api';
@@ -14,7 +15,8 @@ import { CheckCircle, XCircle, ExternalLink, Image } from 'lucide-react';
 const PAGE_SIZE = 10;
 
 export default function VerifyPaymentsPage() {
-  const { user } = useAuth();
+  useAuth();
+  const { selectedGroupId: groupId } = useGroup();
   const { t, locale } = useTranslation();
   const [pending, setPending] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -30,8 +32,6 @@ export default function VerifyPaymentsPage() {
 
   // Proof modal
   const [showProof, setShowProof] = useState<string | null>(null);
-
-  const groupId = user?.memberships?.find((m) => m.role === 'MANAGER')?.group.id;
 
   const loadData = () => {
     if (!groupId) { setLoading(false); return; }

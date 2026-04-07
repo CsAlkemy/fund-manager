@@ -3,6 +3,7 @@ import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroup } from '@/hooks/useGroup';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api, assetUrl } from '@/lib/api';
@@ -12,10 +13,10 @@ import { ExternalLink, Trash2 } from 'lucide-react';
 const CATEGORIES = ['SUPPLIES', 'EVENT', 'MAINTENANCE', 'TRANSPORT', 'OTHER'] as const;
 
 export default function ExpensesPage() {
-  const { user, isSuperAdmin } = useAuth();
+  const { isSuperAdmin } = useAuth();
+  const { selectedGroupId: groupId, isManagerOfSelected } = useGroup();
   const { t, locale } = useTranslation();
-  const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
-  const groupId = user?.memberships?.[0]?.group.id || null;
+  const isManager = !isSuperAdmin && isManagerOfSelected;
 
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);

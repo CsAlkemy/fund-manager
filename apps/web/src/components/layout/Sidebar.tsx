@@ -6,9 +6,11 @@ import {
   LayoutDashboard, Shield, Users, FileText, Settings,
   Globe, CheckCircle, AlertTriangle, Wallet, UserCircle, Receipt,
   X, ChevronsLeft, ChevronsRight, LogOut, ChevronUp, Languages,
+  ChevronDown,
 } from 'lucide-react';
 import { ComponentType, useState, useRef, useEffect } from 'react';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useGroup } from '@/hooks/useGroup';
 import { Logo } from '@/components/ui/Logo';
 import { Avatar } from '@/components/ui/Avatar';
 
@@ -66,9 +68,25 @@ function SectionLabel({ label, collapsed }: { label: string; collapsed: boolean 
 export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, collapsed, onToggleCollapse }: SidebarProps) {
   const router = useRouter();
   const { t, locale, setLocale } = useTranslation();
+  const { selectedGroupId, selectedMembership, setSelectedGroupId, isManagerOfSelected } = useGroup();
   const isSuperAdmin = user?.systemRole === 'SUPER_ADMIN';
-  const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
+  const isManager = !isSuperAdmin && isManagerOfSelected;
   const isMember = !isSuperAdmin && !isManager;
+  const memberships = user?.memberships || [];
+  const hasMultipleGroups = memberships.length > 1;
+
+  // Group selector dropdown
+  const [showGroupSelect, setShowGroupSelect] = useState(false);
+  const groupSelectRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (groupSelectRef.current && !groupSelectRef.current.contains(e.target as Node)) {
+        setShowGroupSelect(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   const roleLabel = isSuperAdmin ? t('role.superAdmin') : isManager ? t('role.manager') : t('role.member');
   const roleColor = isSuperAdmin ? 'text-brand-accent' : isManager ? 'text-purple-400' : 'text-sidebar-text/60';
@@ -125,6 +143,76 @@ export function Sidebar({ user, onLogout, mobileOpen = false, onMobileClose, col
             </div>
           )}
         </div>
+
+        {/* Group Selector */}
+        {!isSuperAdmin && memberships.length > 0 && (
+          <div className={cn('px-3 pb-2', collapsed && 'px-2')} ref={groupSelectRef}>
+            <div className="relative">
+              <button
+                onClick={() => hasMultipleGroups && setShowGroupSelect(!showGroupSelect)}
+                title={selectedMembership?.group.name || ''}
+                className={cn(
+                  'w-full flex items-center rounded-lg transition-colors',
+                  collapsed ? 'justify-center p-2' : 'gap-2.5 px-3 py-2',
+                  hasMultipleGroups ? 'hover:bg-white/10 cursor-pointer' : 'cursor-default',
+                  showGroupSelect && 'bg-white/10'
+                )}
+              >
+                <Avatar
+                  src={selectedMembership?.group.logoUrl}
+                  name={selectedMembership?.group.name || ''}
+                  size="sm"
+                  shape="rounded"
+                  className="bg-white/20 shrink-0"
+                />
+                {!collapsed && (
+                  <>
+                    <div className="min-w-0 flex-1 text-left">
+                      <p className="text-xs font-semibold text-white truncate">{selectedMembership?.group.name}</p>
+                      <p className="text-[10px] text-sidebar-text/60 truncate">
+                        {selectedMembership?.role === 'MANAGER' ? t('role.manager') : t('role.member')}
+                      </p>
+                    </div>
+                    {hasMultipleGroups && (
+                      <ChevronDown className={cn('w-3.5 h-3.5 text-sidebar-text/50 transition-transform shrink-0', showGroupSelect && 'rotate-180')} />
+                    )}
+                  </>
+                )}
+              </button>
+
+              {/* Dropdown */}
+              {showGroupSelect && (
+                <div className={cn(
+                  'absolute z-50 bg-white rounded-xl shadow-lg border border-gray-100 py-1.5 overflow-hidden',
+                  collapsed ? 'left-full ml-2 top-0 w-56' : 'left-0 right-0 top-full mt-1'
+                )}>
+                  <p className="px-3 py-1.5 text-[10px] font-semibold text-gray-400 uppercase tracking-wider">{t('nav.switchGroup')}</p>
+                  {memberships.map((m) => (
+                    <button
+                      key={m.group.id}
+                      onClick={() => { setSelectedGroupId(m.group.id); setShowGroupSelect(false); }}
+                      className={cn(
+                        'w-full flex items-center gap-2.5 px-3 py-2 text-sm transition-colors',
+                        m.group.id === selectedGroupId
+                          ? 'bg-brand-primary/5 text-brand-primary'
+                          : 'text-gray-700 hover:bg-gray-50'
+                      )}
+                    >
+                      <Avatar src={m.group.logoUrl} name={m.group.name} size="sm" shape="rounded" className={m.group.id === selectedGroupId ? 'bg-brand-primary' : 'bg-gray-400'} />
+                      <div className="min-w-0 flex-1 text-left">
+                        <p className="text-sm font-medium truncate">{m.group.name}</p>
+                        <p className="text-[10px] text-gray-400">{m.role === 'MANAGER' ? t('role.manager') : t('role.member')}</p>
+                      </div>
+                      {m.group.id === selectedGroupId && (
+                        <span className="text-[10px] font-medium text-brand-primary">{t('common.current')}</span>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
 
         {/* Nav */}
         <nav className={cn('flex-1 overflow-y-auto', collapsed ? 'px-2' : 'px-3')}>

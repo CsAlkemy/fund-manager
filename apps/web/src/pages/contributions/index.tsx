@@ -5,6 +5,7 @@ import { ContributionList } from '@/components/ui/ContributionList';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroup } from '@/hooks/useGroup';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
@@ -14,14 +15,13 @@ import toast from 'react-hot-toast';
 const PAGE_SIZE = 10;
 
 export default function ContributionsPage() {
-  const { user, isSuperAdmin } = useAuth();
+  const { isSuperAdmin } = useAuth();
+  const { selectedGroupId: groupId, isManagerOfSelected } = useGroup();
   const { t, locale } = useTranslation();
-  const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
+  const isManager = !isSuperAdmin && isManagerOfSelected;
   const [contributions, setContributions] = useState<any[]>([]);
   const [fines, setFines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const groupId = user?.memberships?.[0]?.group.id || null;
 
   // Payment modal
   const [showPayment, setShowPayment] = useState(false);

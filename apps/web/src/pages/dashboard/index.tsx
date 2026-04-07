@@ -6,6 +6,7 @@ import { ContributionFilters, filterAndSort } from '@/components/ui/Contribution
 import { ContributionList } from '@/components/ui/ContributionList';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroup } from '@/hooks/useGroup';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { Avatar } from '@/components/ui/Avatar';
@@ -89,6 +90,7 @@ const PAGE_SIZE = 10;
 // ─── MEMBER DASHBOARD ──────────────────────────────────
 function MemberDashboard() {
   const { user } = useAuth();
+  const { selectedGroupId } = useGroup();
   const { t, locale } = useTranslation();
   const [stats, setStats] = useState({ totalSaved: 0, totalFines: 0, pendingFines: 0, pendingPayments: 0 });
   const [groupSummary, setGroupSummary] = useState<any>(null);
@@ -118,7 +120,7 @@ function MemberDashboard() {
 
   useEffect(() => { setPage(1); }, [search, statusFilter, methodFilter, sortBy]);
 
-  const memberGroupId = user?.memberships?.[0]?.group.id || null;
+  const memberGroupId = selectedGroupId;
 
   const loadMemberData = (gId: string) => {
     Promise.all([
@@ -316,14 +318,13 @@ function MemberDashboard() {
 // ─── MANAGER DASHBOARD ─────────────────────────────────
 function ManagerDashboard() {
   const { user } = useAuth();
+  const { selectedGroupId: groupId } = useGroup();
   const { t, locale } = useTranslation();
   const [group, setGroup] = useState<any>(null);
   const [summary, setSummary] = useState<any>(null);
   const [pending, setPending] = useState<any[]>([]);
   const [contributions, setContributions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-
-  const groupId = user?.memberships?.find((m) => m.role === 'MANAGER')?.group.id;
 
   useEffect(() => {
     if (!groupId) { setLoading(false); return; }
@@ -519,8 +520,9 @@ function SuperAdminDashboard() {
 // ─── MAIN PAGE ─────────────────────────────────────────
 export default function DashboardPage() {
   const { user, loading, isSuperAdmin } = useAuth();
+  const { isManagerOfSelected } = useGroup();
   const { t } = useTranslation();
-  const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
+  const isManager = !isSuperAdmin && isManagerOfSelected;
 
   if (loading) return <DashboardLayout><LoadingSpinner /></DashboardLayout>;
 

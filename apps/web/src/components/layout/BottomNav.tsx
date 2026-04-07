@@ -9,6 +9,7 @@ import {
 } from 'lucide-react';
 import { ComponentType, useState } from 'react';
 import { useTranslation } from '@/i18n/useTranslation';
+import { useGroup } from '@/hooks/useGroup';
 
 interface BottomNavProps {
   user: User | null;
@@ -25,9 +26,10 @@ interface NavTab {
 export function BottomNav({ user, onLogout }: BottomNavProps) {
   const router = useRouter();
   const { t, locale, setLocale } = useTranslation();
+  const { isManagerOfSelected } = useGroup();
   const [showMore, setShowMore] = useState(false);
   const isSuperAdmin = user?.systemRole === 'SUPER_ADMIN';
-  const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
+  const isManager = !isSuperAdmin && isManagerOfSelected;
 
   const tabs: NavTab[] = isSuperAdmin
     ? [

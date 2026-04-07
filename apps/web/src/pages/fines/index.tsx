@@ -1,30 +1,28 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroup } from '@/hooks/useGroup';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
 
 export default function FinesPage() {
-  const { user } = useAuth();
+  useAuth();
+  const { selectedGroupId: groupId, selectedMembership } = useGroup();
   const { t } = useTranslation();
   const [fines, setFines] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!user) return;
-    api.get('/groups').then(async (res) => {
-      const allFines = await Promise.all(
-        res.data.map((g: any) =>
-          api.get(`/groups/${g.id}/fines/my`).then((r) =>
-            r.data.map((f: any) => ({ ...f, groupName: g.name }))
-          ).catch(() => [])
-        )
-      );
-      setFines(allFines.flat());
-      setLoading(false);
-    });
-  }, [user]);
+    if (!groupId) { setLoading(false); return; }
+    setLoading(true);
+    api.get(`/groups/${groupId}/fines/my`)
+      .then((r) => {
+        setFines(r.data.map((f: any) => ({ ...f, groupName: selectedMembership?.group.name || '' })));
+      })
+      .catch(() => setFines([]))
+      .finally(() => setLoading(false));
+  }, [groupId, selectedMembership]);
 
   const totalPending = fines.filter((f) => f.status === 'PENDING').reduce((acc, f) => acc + f.amount, 0);
 

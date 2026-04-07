@@ -4,6 +4,7 @@ import { Modal } from '@/components/ui/Modal';
 import { ConfirmModal } from '@/components/ui/ConfirmModal';
 import { Pagination, paginate } from '@/components/ui/Pagination';
 import { useAuth } from '@/hooks/useAuth';
+import { useGroup } from '@/hooks/useGroup';
 import { useTranslation } from '@/i18n/useTranslation';
 import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
@@ -15,7 +16,8 @@ import { Avatar } from '@/components/ui/Avatar';
 const PAGE_SIZE = 10;
 
 export default function MembersPage() {
-  const { user } = useAuth();
+  useAuth();
+  const { selectedGroupId: groupId } = useGroup();
   const { t } = useTranslation();
   const [group, setGroup] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -33,7 +35,6 @@ export default function MembersPage() {
   const [removeTarget, setRemoveTarget] = useState<{ id: string; name: string } | null>(null);
   const [removing, setRemoving] = useState(false);
 
-  const groupId = user?.memberships?.find((m) => m.role === 'MANAGER')?.group.id;
 
   const loadData = () => {
     if (!groupId) { setLoading(false); return; }
