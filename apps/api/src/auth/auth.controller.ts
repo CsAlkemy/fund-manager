@@ -30,4 +30,27 @@ export class AuthController {
   async getProfile(@CurrentUser('sub') userId: string) {
     return this.authService.getProfile(userId);
   }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'Request a password reset code' })
+  async forgotPassword(@Body() body: { email: string }) {
+    return this.authService.forgotPassword(body.email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'Reset password using email code' })
+  async resetPassword(@Body() body: { email: string; code: string; newPassword: string }) {
+    return this.authService.resetPassword(body.email, body.code, body.newPassword);
+  }
+
+  @Post('change-password')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Change password (requires current password)' })
+  async changePassword(
+    @CurrentUser('sub') userId: string,
+    @Body() body: { currentPassword: string; newPassword: string },
+  ) {
+    return this.authService.changePassword(userId, body.currentPassword, body.newPassword);
+  }
 }

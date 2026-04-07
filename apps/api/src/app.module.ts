@@ -8,6 +8,7 @@ import { GroupModule } from './group/group.module';
 import { ContributionModule } from './contribution/contribution.module';
 import { FineModule } from './fine/fine.module';
 import { UploadModule } from './upload/upload.module';
+import { EmailModule } from './email/email.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { UploadModule } from './upload/upload.module';
     }),
     PrismaModule,
     AuditModule,
+    EmailModule,
     AuthModule,
     GroupModule,
     ContributionModule,

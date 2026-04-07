@@ -73,10 +73,16 @@ export default function LoginPage() {
               </div>
             </div>
 
+            <div className="flex justify-end mt-2">
+              <Link href="/auth/forgot-password" className="text-xs text-brand-primary hover:underline">
+                {t('auth.forgotPassword')}
+              </Link>
+            </div>
+
             <button
               type="submit"
               disabled={form.formState.isSubmitting}
-              className="mt-6 w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+              className="mt-4 w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
             >
               {form.formState.isSubmitting ? t('auth.signingIn') : t('auth.signIn')}
             </button>

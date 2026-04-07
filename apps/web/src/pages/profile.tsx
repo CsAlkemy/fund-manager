@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { changePasswordSchema, type ChangePasswordInput } from '@fund-manager/shared';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
 import { useAuth } from '@/hooks/useAuth';
@@ -11,6 +13,7 @@ import { cn } from '@/lib/cn';
 export default function ProfilePage() {
   const { user, isSuperAdmin, refresh } = useAuth();
   const [showEdit, setShowEdit] = useState(false);
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const isManager = !isSuperAdmin && (user?.memberships?.some((m) => m.role === 'MANAGER') || false);
 
   const roleLabel = isSuperAdmin ? 'Super Admin' : isManager ? 'Manager' : 'Member';
@@ -167,15 +170,21 @@ export default function ProfilePage() {
           </h3>
           <div className="flex items-center justify-between py-3">
             <div>
-              <p className="text-sm text-gray-900">Authentication</p>
-              <p className="text-xs text-gray-400">Email OTP (one-time password)</p>
+              <p className="text-sm text-gray-900">Password</p>
+              <p className="text-xs text-gray-400">Email & password authentication</p>
             </div>
-            <span className="inline-flex items-center gap-1 bg-green-50 text-green-700 text-xs font-medium px-2.5 py-1 rounded-full">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500" /> Active
-            </span>
+            <button
+              onClick={() => setShowChangePassword(true)}
+              className="text-xs font-medium text-brand-primary hover:underline"
+            >
+              Change Password
+            </button>
           </div>
         </div>
       </div>
+
+      {/* Change Password Modal */}
+      <ChangePasswordModal isOpen={showChangePassword} onClose={() => setShowChangePassword(false)} />
 
       {/* Edit Profile Modal */}
       <Modal isOpen={showEdit} onClose={() => setShowEdit(false)} title="Edit Profile">
@@ -225,5 +234,60 @@ export default function ProfilePage() {
         </form>
       </Modal>
     </DashboardLayout>
+  );
+}
+
+function ChangePasswordModal({ isOpen, onClose }: { isOpen: boolean; onClose: () => void }) {
+  const form = useForm<ChangePasswordInput>({
+    resolver: zodResolver(changePasswordSchema),
+  });
+
+  const onSubmit = async (data: ChangePasswordInput) => {
+    try {
+      await api.post('/auth/change-password', data);
+      toast.success('Password changed successfully!');
+      form.reset();
+      onClose();
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || 'Failed to change password');
+    }
+  };
+
+  return (
+    <Modal isOpen={isOpen} onClose={onClose} title="Change Password">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Current Password</label>
+          <input
+            type="password"
+            autoComplete="current-password"
+            {...form.register('currentPassword')}
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+          />
+          {form.formState.errors.currentPassword && (
+            <p className="mt-1 text-xs text-red-500">{form.formState.errors.currentPassword.message}</p>
+          )}
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">New Password</label>
+          <input
+            type="password"
+            autoComplete="new-password"
+            {...form.register('newPassword')}
+            className="w-full rounded-lg border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-brand-primary focus:ring-1 focus:ring-brand-primary"
+          />
+          {form.formState.errors.newPassword && (
+            <p className="mt-1 text-xs text-red-500">{form.formState.errors.newPassword.message}</p>
+          )}
+        </div>
+        <button
+          type="submit"
+          disabled={form.formState.isSubmitting}
+          className="w-full rounded-lg bg-brand-primary px-4 py-2.5 text-sm font-medium text-white hover:bg-brand-primary/90 disabled:opacity-50"
+        >
+          {form.formState.isSubmitting ? 'Changing...' : 'Change Password'}
+        </button>
+      </form>
+    </Modal>
   );
 }
