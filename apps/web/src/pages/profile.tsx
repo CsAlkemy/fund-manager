@@ -4,7 +4,6 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { changePasswordSchema, type ChangePasswordInput } from '@fund-manager/shared';
 import { DashboardLayout } from '@/components/layout/DashboardLayout';
 import { Modal } from '@/components/ui/Modal';
-import { ImageUpload } from '@/components/ui/ImageUpload';
 import { Avatar } from '@/components/ui/Avatar';
 import { useAuth } from '@/hooks/useAuth';
 import { api, assetUrl } from '@/lib/api';
@@ -90,34 +89,28 @@ export default function ProfilePage() {
           {/* Avatar + Name */}
           <div className="relative px-6 pb-6">
             <div className="absolute -top-10 left-6">
-              {user?.avatarUrl ? (
-                <ImageUpload
-                  currentUrl={assetUrl(user.avatarUrl)}
-                  onUploaded={handleAvatarUploaded}
-                  shape="rounded"
-                  size="lg"
-                  className="border-4 !border-white shadow-lg !border-solid"
-                />
-              ) : (
-                <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-input')?.click()}>
+              <div className="relative group cursor-pointer" onClick={() => document.getElementById('avatar-input')?.click()}>
+                {user?.avatarUrl ? (
+                  <img src={assetUrl(user.avatarUrl)} alt={user.name} className="h-24 w-24 rounded-2xl object-cover border-4 border-white shadow-lg" />
+                ) : (
                   <div className={cn('h-24 w-24 rounded-2xl bg-gradient-to-br flex items-center justify-center text-white text-3xl font-bold border-4 border-white shadow-lg', avatarColor)}>
                     {user?.name?.charAt(0)?.toUpperCase() || '?'}
                   </div>
-                  <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity border-4 border-transparent">
-                    <Pen className="w-5 h-5 text-white" />
-                  </div>
-                  <input id="avatar-input" type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                    const file = e.target.files?.[0];
-                    if (!file) return;
-                    const formData = new FormData();
-                    formData.append('file', file);
-                    try {
-                      const res = await api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
-                      await handleAvatarUploaded(res.data.url);
-                    } catch { toast.error('Upload failed'); }
-                  }} />
+                )}
+                <div className="absolute inset-0 rounded-2xl bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                  <Pen className="w-5 h-5 text-white" />
                 </div>
-              )}
+                <input id="avatar-input" type="file" accept="image/*" className="hidden" onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  const formData = new FormData();
+                  formData.append('file', file);
+                  try {
+                    const res = await api.post('/upload/image', formData, { headers: { 'Content-Type': 'multipart/form-data' } });
+                    await handleAvatarUploaded(res.data.url);
+                  } catch { toast.error('Upload failed'); }
+                }} />
+              </div>
             </div>
             <div className="pt-16">
               <h1 className="text-2xl font-bold text-gray-900">{user?.name}</h1>
