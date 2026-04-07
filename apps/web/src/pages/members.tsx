@@ -9,7 +9,7 @@ import { LoadingSpinner } from '@/components/ui/LoadingSpinner';
 import { api } from '@/lib/api';
 import toast from 'react-hot-toast';
 import { cn } from '@/lib/cn';
-import { UserPlus, UserMinus, Mail, Users as UsersIcon } from 'lucide-react';
+import { UserPlus, UserMinus, Mail, Users as UsersIcon, Link2 } from 'lucide-react';
 import { Avatar } from '@/components/ui/Avatar';
 
 const PAGE_SIZE = 10;
@@ -102,6 +102,23 @@ export default function MembersPage() {
             </div>
             <p className="text-xs text-gray-500">{manager.user.email}</p>
           </div>
+        </div>
+      )}
+
+      {/* Invite Link */}
+      {group?.inviteCode && (
+        <div className="rounded-xl bg-brand-primary/5 border border-brand-primary/20 p-4 mb-4 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Link2 className="w-4 h-4 text-brand-primary" />
+            <div>
+              <p className="text-sm font-medium text-gray-900">{t('groups.inviteLink')}</p>
+              <p className="text-xs text-gray-500">{t('groups.shareMembers')}</p>
+            </div>
+          </div>
+          <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/invite/${group.inviteCode}`); toast.success(t('common.copied')); }}
+            className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 shrink-0">
+            {t('groups.copyInvite')}
+          </button>
         </div>
       )}
 

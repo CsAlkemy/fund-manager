@@ -13,6 +13,8 @@ export default function RegisterPage() {
   const router = useRouter();
   const { refresh } = useAuth(false);
   const { t } = useTranslation();
+  const invite = router.query.invite as string | undefined;
+
   const form = useForm<RegisterInput>({
     resolver: zodResolver(registerSchema),
   });
@@ -23,6 +25,18 @@ export default function RegisterPage() {
       localStorage.setItem('token', res.data.token);
       toast.success(t('auth.registrationComplete'));
       await refresh();
+
+      if (invite) {
+        try {
+          const joinRes = await api.post('/groups/join', { inviteCode: invite });
+          toast.success(`Joined ${joinRes.data.groupName}!`);
+          router.push(`/groups/${joinRes.data.groupId}`);
+          return;
+        } catch {
+          // Invalid code — continue to dashboard
+        }
+      }
+
       router.push('/dashboard');
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('auth.registrationFailed'));
@@ -118,7 +132,7 @@ export default function RegisterPage() {
 
             <p className="mt-4 text-center text-sm text-gray-500">
               {t('auth.haveAccount')}{' '}
-              <Link href="/auth/login" className="text-brand-primary hover:underline font-medium">
+              <Link href={invite ? `/auth/login?invite=${invite}` : '/auth/login'} className="text-brand-primary hover:underline font-medium">
                 {t('auth.signIn')}
               </Link>
             </p>

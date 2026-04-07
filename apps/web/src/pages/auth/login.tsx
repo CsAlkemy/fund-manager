@@ -13,6 +13,7 @@ export default function LoginPage() {
   const router = useRouter();
   const { refresh } = useAuth(false);
   const { t } = useTranslation();
+  const invite = router.query.invite as string | undefined;
 
   const form = useForm<LoginInput>({
     resolver: zodResolver(loginSchema),
@@ -23,6 +24,18 @@ export default function LoginPage() {
       const res = await api.post('/auth/login', data);
       localStorage.setItem('token', res.data.token);
       await refresh();
+
+      if (invite) {
+        try {
+          const joinRes = await api.post('/groups/join', { inviteCode: invite });
+          toast.success(`Joined ${joinRes.data.groupName}!`);
+          router.push(`/groups/${joinRes.data.groupId}`);
+          return;
+        } catch {
+          // Already a member or invalid code — continue to dashboard
+        }
+      }
+
       router.push('/dashboard');
     } catch (err: any) {
       toast.error(err.response?.data?.message || t('auth.loginFailed'));
@@ -91,7 +104,7 @@ export default function LoginPage() {
 
             <p className="mt-4 text-center text-sm text-gray-500">
               {t('auth.noAccount')}{' '}
-              <Link href="/auth/register" className="text-brand-primary hover:underline font-medium">
+              <Link href={invite ? `/auth/register?invite=${invite}` : '/auth/register'} className="text-brand-primary hover:underline font-medium">
                 {t('auth.createAccount')}
               </Link>
             </p>

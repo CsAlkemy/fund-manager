@@ -399,6 +399,18 @@ function ManagerDashboard() {
         </div>
       </div>
 
+      {/* Invite Link */}
+      <div className="rounded-xl bg-brand-primary/5 border border-brand-primary/20 p-4 mb-6 flex items-center justify-between">
+        <div>
+          <p className="text-sm font-medium text-gray-900">{t('groups.inviteLink')}</p>
+          <p className="text-xs text-gray-500">{t('groups.shareMembers')}</p>
+        </div>
+        <button onClick={() => { navigator.clipboard.writeText(`${window.location.origin}/invite/${group.inviteCode}`); toast.success(t('common.copied')); }}
+          className="rounded-lg bg-brand-primary px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary/90 shrink-0">
+          {t('groups.copyInvite')}
+        </button>
+      </div>
+
       {/* Quick links */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {pending.length > 0 && (
