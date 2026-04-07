@@ -1,8 +1,8 @@
 import { ReactNode, useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
+import { BottomNav } from './BottomNav';
 import { useAuth } from '@/hooks/useAuth';
 import { useTranslation } from '@/i18n/useTranslation';
-import { Menu } from 'lucide-react';
 import { Logo } from '@/components/ui/Logo';
 
 interface DashboardLayoutProps {
@@ -36,10 +36,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen bg-gray-50">
       {/* Mobile top bar */}
       <header className="md:hidden fixed top-0 left-0 right-0 z-40 flex items-center h-14 px-4 bg-sidebar-bg">
-        <button onClick={() => setSidebarOpen(true)} className="text-white p-2 -ml-2" aria-label="Open menu">
-          <Menu className="h-6 w-6" />
-        </button>
-        <div className="ml-3 flex items-center gap-2">
+        <div className="flex items-center gap-2">
           <Logo size={24} withBg />
           <h1 className="text-lg font-bold text-white">{t('common.appTitle')}</h1>
         </div>
@@ -54,8 +51,11 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         onToggleCollapse={() => setCollapsed(!collapsed)}
       />
 
+      {/* Bottom nav for mobile */}
+      <BottomNav user={user} onMoreClick={() => setSidebarOpen(true)} />
+
       <main className={`transition-all duration-200 ${collapsed ? 'md:ml-[68px]' : 'md:ml-60'}`}>
-        <div className="p-4 pt-20 md:p-8 md:pt-8">{children}</div>
+        <div className="p-4 pt-20 pb-28 md:p-8 md:pt-8 md:pb-8">{children}</div>
       </main>
     </div>
   );
